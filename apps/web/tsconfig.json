@@ -1,0 +1,52 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "ES2022"
+    ],
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@studioos/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@studioos/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@studioos/ai-service": [
+        "../../packages/ai-service/src/index.ts"
+      ],
+      "@studioos/context-engine": [
+        "../../packages/context-engine/src/index.ts"
+      ],
+      "@studioos/dependency-engine": [
+        "../../packages/dependency-engine/src/index.ts"
+      ],
+      "@studioos/assembly-engine": [
+        "../../packages/assembly-engine/src/index.ts"
+      ]
+    },
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
