@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-06-02
 **Active Branch:** `develop`
-**Latest Commit:** `4e4745e`
+**Latest Commit:** `47f52ba`
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 6 Context Engine committed — `4e4745e` |
+| `develop` | Active | Sprint 7 Dependency Engine committed — `47f52ba` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -66,6 +66,20 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 7 — Dependency Engine — `47f52ba`
+Dependency Engine fully implemented. Artifact relationship tracking layer.
+
+**Deliverables:**
+- `packages/dependency-engine/` package — `addDependency`, `removeDependency`, `getDependencies`, `getDependencyGraph`
+- `ArtifactType`, `DependencyType`, `ArtifactRef`, `Dependency`, `DependencyGraph` types — local to dependency-engine
+- Dependency injection — `SupabaseClient` passed by caller; no internal instantiation
+- `addDependency` validates source and target existence before insert; conflict-fetch on 23505
+- Uniqueness on `(project_id, source_type, source_id, target_type, target_id, dependency_type)` — same two artifacts may have multiple relationship types
+- `getDependencyGraph` — Option B adjacency map `{ [artifactId]: { dependsOn, dependedOnBy } }`, `MAX_GRAPH_DEPTH = 10`
+- `database/migrations/006_artifact_dependencies.sql` — table, 6-field unique index, two lookup indexes, RLS Pattern B, `delete_artifact_dependencies()` trigger function, `BEFORE DELETE` triggers on `assets`, `compass_sections`, `project_core`
+- `apps/web/app/actions/dependencies.ts` — four Server Action wrappers
+- No UI, no ai-service changes, no `@studioos/shared` changes
 
 ### Sprint 6 — Context Engine — `4e4745e`
 Context Engine fully implemented. Headless AI context assembly layer.
@@ -140,6 +154,7 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/003_project_core.sql` | Applied | `project_core`, unique index, EXISTS RLS |
 | `database/migrations/004_assets.sql` | Applied | `assets`, dual FK+indexes, RLS |
 | `database/migrations/005_compass_sections.sql` | Applied | `compass_sections`, sort_order, UNIQUE(project_id, sort_order), EXISTS RLS |
+| `database/migrations/006_artifact_dependencies.sql` | Applied | `artifact_dependencies`, 6-field unique index, trigger-based orphan cleanup, EXISTS RLS |
 
 ---
 
@@ -165,11 +180,11 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 6 Context Engine complete. Implementation committed to `develop`. Dependency Engine architecture review in progress.
+Sprint 7 Dependency Engine complete. Implementation committed to `develop`. Assembly Engine architecture review in progress.
 
 ## Next Sprint
 
-**Sprint 7 — Dependency Engine**
+**Sprint 8 — Assembly Engine**
 Branch: TBD (pending architecture review approval)
 
-Dependency tracking layer — maps relationships between project artifacts (assets, compass sections, core fields) so changes can be propagated and stale references surfaced. Architecture review in progress.
+AI prompt assembly layer — composes final prompts from assembled context and user input, routes them through `@studioos/ai-service`, and returns structured AI responses. Architecture review in progress.
