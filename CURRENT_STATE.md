@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
 **Last Updated:** 2026-06-02
-**Active Branch:** `feature/sprint-1-assets`
-**Latest Merge Commit:** `92807e0`
+**Active Branch:** `develop`
+**Latest Merge Commit:** `b09ad0e`
 
 ---
 
@@ -11,12 +11,12 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 3 Workspace merged — `92807e0` |
+| `develop` | Active | Sprint 4 Asset Library merged — `b09ad0e` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
 | `feature/sprint-1-workspace` | Merged | Workspace layer |
-| `feature/sprint-1-assets` | Active | Sprint 4 Asset Library — in progress |
+| `feature/sprint-1-assets` | Merged | Asset Library — complete |
 
 ---
 
@@ -66,12 +66,31 @@ Workspace shell fully implemented.
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
 
+### Sprint 4 — Asset Library — `1c38950` (merged `b09ad0e`)
+Asset Library fully implemented. Database bootstrap complete.
+
+**Deliverables:**
+- `Asset` type updated: `owner_id` (renamed from `user_id`), `source_type`, `storage_path`, `external_url` (replaced `url`)
+- `AssetSourceType` union type added to `@studioos/shared`
+- `database/migrations/004_assets.sql` — `assets` table, dual FK constraints, two indexes, RLS
+- `database/storage/assets-bucket.md` — private bucket setup and Storage RLS documentation
+- `app/actions/assets.ts` — `getAssets`, `uploadAsset`, `addReference`, `deleteAsset` Server Actions
+- Storage-first delete ordering — prevents orphaned files, keeps deletion retryable
+- Signed URLs generated server-side at read time (1-hour expiry)
+- `components/assets/` — `AssetLibrary`, `AssetTypeFilter`, `AssetGrid`, `AssetCard`, `UploadButton`, `UploadDialog`, `AddReferenceButton`, `AddReferenceDialog`
+- `/workspace/[projectId]/assets` — full implementation replacing placeholder shell
+- shadcn `tabs` and `textarea` installed
+
 ---
 
 ## Follow-Up Tasks
 
-### Pre-Sprint 4 Prerequisite — Must complete before implementation begins
-- [ ] Rename `Asset.user_id` → `Asset.owner_id` in `packages/shared/src/types/asset.ts`
+### Carry Forward from Asset Library Review
+- [ ] Export `AssetSourceType` from `@studioos/shared` public API (`types/index.ts` + `index.ts`)
+- [ ] Render `external_url` as a clickable link in `AssetCard`
+- [ ] Replace `createSignedUrl` loop with bulk `createSignedUrls` call in `getAssets`
+- [ ] Storage cleanup on `uploadAsset` DB failure (prevent orphaned storage files)
+- [ ] Add DB-level `source_type` exclusivity CHECK constraint to `assets` table
 
 ### Carry Forward from Workspace Review
 - [ ] Handle "no `project_core` row" state when Core panel becomes functional (future Core sprint)
@@ -92,13 +111,26 @@ Workspace shell fully implemented.
 | `database/migrations/001_users.sql` | Applied | `user_profiles`, RLS, auto-create trigger |
 | `database/migrations/002_projects.sql` | Applied | `projects`, `owner_id` FK+index, RLS |
 | `database/migrations/003_project_core.sql` | Applied | `project_core`, unique index, EXISTS RLS |
-| `database/migrations/004_assets.sql` | Planned | `assets` table — Sprint 4 |
+| `database/migrations/004_assets.sql` | Applied | `assets`, dual FK+indexes, RLS |
 
 ---
 
+## Storage
+
+| Bucket | Access | Status | Description |
+|--------|--------|--------|-------------|
+| `assets` | Private | Active | File uploads — path `{owner_id}/{project_id}/{asset_id}/{filename}` |
+
+---
+
+## Development Status
+
+Feature development paused. Governance documentation in progress.
+
 ## Next Sprint
 
-**Sprint 4 — Asset Library**
-Branch: `feature/sprint-1-assets` (active)
+**Sprint 5 — Creative Compass**
+Branch: TBD (pending governance review)
 
-See Asset Library Architecture Review for full scope.
+Creative direction panel — vision, tone, and guiding principles for each project.
+Panel shell exists at `/workspace/[projectId]/compass`. Full implementation deferred.
