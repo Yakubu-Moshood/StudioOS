@@ -123,14 +123,26 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ---
 
+## Governance Documents
+
+| Document | Purpose |
+|----------|---------|
+| [docs/README.md](docs/README.md) | Documentation index and reading order |
+| [docs/STUDIOOS_CTO_DIRECTIVE.md](docs/STUDIOOS_CTO_DIRECTIVE.md) | Non-negotiable engineering standards |
+| [docs/STUDIOOS_DEVELOPMENT_PROTOCOL.md](docs/STUDIOOS_DEVELOPMENT_PROTOCOL.md) | Sprint lifecycle — 10-phase process |
+| [docs/STUDIOOS_MASTER_ARCHITECTURE.md](docs/STUDIOOS_MASTER_ARCHITECTURE.md) | System architecture snapshot (post-Sprint 4) |
+| [docs/STUDIOOS_SPRINT_TEMPLATE.md](docs/STUDIOOS_SPRINT_TEMPLATE.md) | Reusable templates for reviews, reports, commits |
+
+---
+
 ## Development Status
 
-Feature development paused. Governance documentation in progress.
+Feature development paused. Governance layer complete. Sprint 5 architecture review in progress.
 
 ## Next Sprint
 
 **Sprint 5 — Creative Compass**
-Branch: TBD (pending governance review)
+Branch: TBD (pending architecture review approval)
 
 Creative direction panel — vision, tone, and guiding principles for each project.
-Panel shell exists at `/workspace/[projectId]/compass`. Full implementation deferred.
+Panel shell exists at `/workspace/[projectId]/compass`. Architecture review in progress.
