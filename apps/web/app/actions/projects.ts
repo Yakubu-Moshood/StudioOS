@@ -5,6 +5,12 @@ import { createClient } from '@/lib/supabase/server'
 import { PROJECT_FORMATS } from '@studioos/shared'
 import type { Project, ProjectFormat } from '@studioos/shared'
 
+export async function getProject(id: string): Promise<Project | null> {
+  const supabase = await createClient()
+  const { data } = await supabase.from('projects').select('*').eq('id', id).single()
+  return (data as Project) ?? null
+}
+
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string }
 
 export async function getProjects(): Promise<Project[]> {
