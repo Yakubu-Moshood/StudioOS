@@ -13,6 +13,9 @@ create table if not exists public.user_profiles (
 -- Row Level Security
 alter table public.user_profiles enable row level security;
 
+drop policy if exists "Users can view own profile"   on public.user_profiles;
+drop policy if exists "Users can update own profile" on public.user_profiles;
+
 create policy "Users can view own profile"
   on public.user_profiles for select
   using (auth.uid() = id);
@@ -34,6 +37,8 @@ begin
   return new;
 end;
 $$;
+
+drop trigger if exists on_auth_user_created on auth.users;
 
 create trigger on_auth_user_created
   after insert on auth.users
