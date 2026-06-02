@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-06-02
 **Active Branch:** `develop`
-**Latest Merge Commit:** `fa130e3`
+**Latest Commit:** `4e4745e`
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 5 Creative Compass merged — `fa130e3` |
+| `develop` | Active | Sprint 6 Context Engine committed — `4e4745e` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -66,6 +66,20 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 6 — Context Engine — `4e4745e`
+Context Engine fully implemented. Headless AI context assembly layer.
+
+**Deliverables:**
+- `packages/context-engine/` package — `assembleContext`, `serializeContext`, `getContextSummary`
+- `ProjectContext`, `AssembledPromptContext`, `ContextSummary` types — local to context-engine, not in `@studioos/shared`
+- Dependency injection — `SupabaseClient` passed by caller; no internal instantiation
+- 8,000 token soft limit with priority trimming: Core never trimmed → Compass trimmed second → Assets trimmed first
+- Asset inclusion limited to `image` and `document` types at DB query level
+- `ContextSummary` fields: `contextWordCount`, `compassSectionCount`, `assetCount`, `estimatedTokens`
+- Token estimation: `Math.ceil(text.length / 4)` — approximation, no tokenizer dependency
+- `apps/web/app/actions/context.ts` — `getProjectContextSummary` Server Action wrapper
+- No database migrations, no UI, no ai-service changes
 
 ### Sprint 5 — Creative Compass — `1ae5ad8` (merged `fa130e3`)
 Creative Compass fully implemented.
@@ -151,12 +165,11 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 5 Creative Compass complete and merged. Context Engine architecture review in progress. Implementation paused.
+Sprint 6 Context Engine complete. Implementation committed to `develop`. Dependency Engine architecture review in progress.
 
 ## Next Sprint
 
-**Sprint 6 — Context Engine**
+**Sprint 7 — Dependency Engine**
 Branch: TBD (pending architecture review approval)
 
-AI context assembly layer — aggregates project data from Core, Compass, and Assets into
-structured prompts for AI features. Architecture review in progress.
+Dependency tracking layer — maps relationships between project artifacts (assets, compass sections, core fields) so changes can be propagated and stale references surfaced. Architecture review in progress.
