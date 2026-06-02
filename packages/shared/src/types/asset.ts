@@ -8,14 +8,18 @@ export type AssetType =
 
 export type AssetSource = 'upload' | 'external' | 'generated'
 
+export type AssetSourceType = 'uploaded' | 'external'
+
 export interface Asset {
   id: string
   project_id: string
-  user_id: string
+  owner_id: string
   name: string
   type: AssetType
   source: AssetSource
-  url: string
+  source_type: AssetSourceType
+  storage_path: string | null
+  external_url: string | null
   size: number | null
   mime_type: string | null
   description: string | null
