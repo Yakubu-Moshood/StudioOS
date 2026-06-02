@@ -38,11 +38,11 @@ export default [
 
   {
     ignores: [
-      'node_modules/**',
-      '.next/**',
-      'dist/**',
-      '.turbo/**',
-      'coverage/**',
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/dist/**',
+      '**/.turbo/**',
+      '**/coverage/**',
       '**/next-env.d.ts',
     ],
   },
