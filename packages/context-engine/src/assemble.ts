@@ -1,0 +1,95 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Asset, CompassSection, ProjectCore } from '@studioos/shared'
+import type { AssetContext, CompassEntryContext, CoreContext, ProjectContext } from './types'
+
+const INCLUDED_ASSET_TYPES = ['image', 'document']
+
+export async function assembleContext(
+  client: SupabaseClient,
+  projectId: string
+): Promise<ProjectContext> {
+  const [projectResult, coreResult, compassResult, assetsResult] = await Promise.all([
+    client
+      .from('projects')
+      .select('id, title, format, status')
+      .eq('id', projectId)
+      .single(),
+    client
+      .from('project_core')
+      .select('*')
+      .eq('project_id', projectId)
+      .maybeSingle(),
+    client
+      .from('compass_sections')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('sort_order', { ascending: true }),
+    client
+      .from('assets')
+      .select('*')
+      .eq('project_id', projectId)
+      .in('type', INCLUDED_ASSET_TYPES),
+  ])
+
+  // Graceful fallback — RLS returns null/empty rather than throwing on auth failure
+  const projectData = projectResult.data as {
+    id: string
+    title: string
+    format: string
+    status: string
+  } | null
+
+  const coreData = coreResult.data as ProjectCore | null
+  const sections = (compassResult.data ?? []) as CompassSection[]
+  const rawAssets = (assetsResult.data ?? []) as Asset[]
+
+  const coreContext: CoreContext | null = coreData
+    ? {
+        synopsis: coreData.synopsis,
+        genre: coreData.genre,
+        tone: coreData.tone,
+        themes: coreData.themes,
+      }
+    : null
+
+  const compassEntries: CompassEntryContext[] = sections
+    .filter((s) => s.content.trim().length > 0)
+    .map((s) => ({
+      title: s.title,
+      content: s.content,
+      sectionType: s.section_type,
+    }))
+
+  const assetContexts: AssetContext[] = await Promise.all(
+    rawAssets.map(async (asset): Promise<AssetContext> => {
+      let resolvedUrl: string | null = null
+
+      if (asset.source_type === 'uploaded' && asset.storage_path) {
+        const { data: signedData } = await client.storage
+          .from('assets')
+          .createSignedUrl(asset.storage_path, 3600)
+        resolvedUrl = signedData?.signedUrl ?? null
+      } else if (asset.source_type === 'external') {
+        resolvedUrl = asset.external_url
+      }
+
+      return {
+        id: asset.id,
+        name: asset.name,
+        type: asset.type,
+        description: asset.description,
+        tags: asset.tags,
+        resolvedUrl,
+      }
+    })
+  )
+
+  return {
+    projectId,
+    projectTitle: projectData?.title ?? 'Untitled Project',
+    projectFormat: projectData?.format ?? '',
+    core: coreContext,
+    compass: compassEntries,
+    assets: assetContexts,
+  }
+}

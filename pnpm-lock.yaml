@@ -129,6 +129,9 @@ importers:
 
   packages/context-engine:
     devDependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.0.0
+        version: 2.106.2
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
