@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-06-02
 **Active Branch:** `develop`
-**Latest Commit:** `47f52ba`
+**Latest Commit:** `ce638b7`
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 7 Dependency Engine committed — `47f52ba` |
+| `develop` | Active | Sprint 8 Assembly Engine committed — `ce638b7` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -66,6 +66,22 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 8 — Assembly Engine — `ce638b7`
+AI prompt assembly layer. Composes final prompts from assembled context and user input, routes through `@studioos/ai-service`, returns structured responses.
+
+**Deliverables:**
+- `packages/assembly-engine/` package — `buildRequest`, `executeAssembly`
+- `AssemblyMode`, `AssemblyRequest` (with `promptVersion: 1`), `PromptSegment`, `TokenUsage`, `AssemblyResult`, `AssemblyOptions` types — local to assembly-engine
+- Dependency injection — `SupabaseClient` passed by caller; no internal instantiation
+- `filterContextByMode` — filters assembled `ProjectContext` by mode before serialization
+- Four `AssemblyMode` values: `full_context`, `compass_only`, `core_only`, `bare`
+- `userInstruction` capped at 2,000 characters
+- Four `PromptSegment` entries per request: `core`, `compass`, `assets`, `user_instruction` — each with `segmentName`, `included`, `characterCount`
+- `TokenUsage` — `estimatedPromptTokens`, `estimatedCompletionTokens`, `estimatedTotalTokens` — all derived from `Math.ceil(length / 4)`
+- `packages/ai-service/src/index.ts` — `GenerateInput`, `GenerateOutput`, `generate()` stub (returns placeholder; wired to real provider in Sprint 9)
+- `apps/web/app/actions/assembly.ts` — `buildAssemblyRequest`, `executeProjectAssembly` Server Actions
+- No UI, no database migrations, no `@studioos/shared` changes, no Context Engine changes
 
 ### Sprint 7 — Dependency Engine — `47f52ba`
 Dependency Engine fully implemented. Artifact relationship tracking layer.
@@ -180,11 +196,11 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 7 Dependency Engine complete. Implementation committed to `develop`. Assembly Engine architecture review in progress.
+Sprint 8 Assembly Engine complete. Implementation committed to `develop`. AI Service architecture review in progress.
 
 ## Next Sprint
 
-**Sprint 8 — Assembly Engine**
+**Sprint 9 — AI Service**
 Branch: TBD (pending architecture review approval)
 
-AI prompt assembly layer — composes final prompts from assembled context and user input, routes them through `@studioos/ai-service`, and returns structured AI responses. Architecture review in progress.
+Real AI provider integration — wires `@studioos/ai-service` to an actual LLM provider, adds model selection, implements request/response handling, error management, and provider abstraction. Architecture review in progress.
