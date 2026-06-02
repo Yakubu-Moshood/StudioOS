@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
-import { CompassPanel } from '@/components/workspace/panels/compass-panel'
+import { CompassView } from '@/components/compass/compass-view'
 
 export const metadata: Metadata = {
   title: 'Compass — StudioOS',
 }
 
-export default function CompassPage() {
-  return <CompassPanel />
+interface CompassPageProps {
+  params: Promise<{ projectId: string }>
+}
+
+export default async function CompassPage({ params }: CompassPageProps) {
+  const { projectId } = await params
+  return <CompassView projectId={projectId} />
 }

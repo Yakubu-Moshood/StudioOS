@@ -12,6 +12,7 @@ export type {
   BlockStatus,
   CreativeCompass,
   CompassSection,
+  SectionType,
   Asset,
   AssetType,
   AssetSource,
