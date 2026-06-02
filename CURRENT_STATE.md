@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
 **Last Updated:** 2026-06-02
-**Active Branch:** `feature/sprint-1-workspace`
-**Latest Merge Commit:** `ccf4924`
+**Active Branch:** `feature/sprint-1-assets`
+**Latest Merge Commit:** `92807e0`
 
 ---
 
@@ -11,11 +11,12 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 1 Dashboard merged — `ccf4924` |
+| `develop` | Active | Sprint 3 Workspace merged — `92807e0` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
-| `feature/sprint-1-workspace` | Active | Sprint 3 Workspace — in progress |
+| `feature/sprint-1-workspace` | Merged | Workspace layer |
+| `feature/sprint-1-assets` | Active | Sprint 4 Asset Library — in progress |
 
 ---
 
@@ -34,44 +35,53 @@ shadcn/ui, ESLint v9, TypeScript strict mode, six `@studioos/*` package stubs.
 - Constants: `PROJECT_FORMATS`, `PROJECT_STATUSES`
 
 ### Sprint 1 — Authentication — `dcbb7c4`
-Authentication layer fully implemented and merged.
+Authentication layer fully implemented.
 
 **Deliverables:**
 - Supabase SSR three-client setup (browser, server, middleware)
 - `middleware.ts` — route protection for `/dashboard`, `/workspace`
 - `app/(auth)/` — sign-in, sign-up pages and centered layout
-- `app/auth/callback/route.ts` — PKCE code exchange
+- `app/auth/callback/route.ts` — PKCE code exchange with validated `next` param
 - `database/migrations/001_users.sql` — `user_profiles` table, RLS, auto-create trigger
-- shadcn `input`, `label` components
 
 ### Sprint 1 — Dashboard — `123182e`
-Dashboard layer fully implemented and merged. All Sprint 1 auth follow-up items resolved.
+Dashboard layer fully implemented. All Sprint 1 auth follow-up items resolved.
 
 **Deliverables:**
-- `app/(app)/layout.tsx` — authenticated shell with TopNav
-- `app/(app)/dashboard/page.tsx` + `loading.tsx` — project grid
-- `app/actions/auth.ts` — `signOut` Server Action
-- `app/actions/projects.ts` — `getProjects`, `createProject` Server Actions
-- `components/nav/top-nav.tsx`, `user-menu.tsx` — navigation
-- `components/dashboard/project-grid.tsx`, `project-card.tsx` — project display
-- `components/dashboard/create-project-button.tsx`, `create-project-dialog.tsx` — project creation
-- `database/migrations/002_projects.sql` — `projects` table, `owner_id` FK, index, RLS
-- shadcn: card, dropdown-menu, avatar, select, badge, skeleton, sonner, dialog, separator
-- Auth follow-ups resolved: `signOut`, `next` param validation, callback refactor, migration idempotency guards
-- `packages/shared/src/types/project.ts` — `user_id` → `owner_id`
+- `app/(app)/layout.tsx` — authenticated shell with TopNav, UserMenu, sign-out
+- `app/(app)/dashboard/` — project grid, create-project dialog, loading skeleton
+- `app/actions/auth.ts`, `app/actions/projects.ts` — Server Actions
+- `database/migrations/002_projects.sql` — `projects` table, `owner_id` FK+index, RLS
+
+### Sprint 3 — Workspace — `5cc8e06`
+Workspace shell fully implemented.
+
+**Deliverables:**
+- Sub-route panel architecture (`/core`, `/compass`, `/map`, `/assets`)
+- `WorkspaceHeader` — back navigation, project title, format badge
+- `WorkspaceSidebar` — `useSelectedLayoutSegment()` active state, four panel links
+- `app/(app)/workspace/[projectId]/layout.tsx` — project ownership validation
+- `app/(app)/workspace/[projectId]/page.tsx` — redirect to `/core`
+- Four panel shell pages + components (Core, Compass, Map, Assets)
+- `app/actions/projects.ts` — `getProject(id)` added
+- `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
 
 ---
 
 ## Follow-Up Tasks
 
-### Sprint 3 — Resolve during or after Workspace implementation
-- [ ] Implement `/workspace/[projectId]` route — project cards currently 404
-- [ ] Add `updated_at` auto-update triggers for `user_profiles` and `projects` tables
-- [ ] Mount `ThemeProvider` when dark mode enters scope
+### Pre-Sprint 4 Prerequisite — Must complete before implementation begins
+- [ ] Rename `Asset.user_id` → `Asset.owner_id` in `packages/shared/src/types/asset.ts`
+
+### Carry Forward from Workspace Review
+- [ ] Handle "no `project_core` row" state when Core panel becomes functional (future Core sprint)
+- [ ] Add `generateMetadata` to panel pages to include project title when content is added
+- [ ] Replace `h-[calc(100vh-3.5rem)]` with a layout token when nav height stabilizes
 
 ### Future
-- [ ] `UserProfile` type has `user_id` field that does not match the DB schema (`user_profiles.id` IS the user ID — no separate `user_id` column exists). Reconcile type with schema.
-- [ ] `Asset.user_id` naming inconsistency with `Project.owner_id` — align before Sprint 4 assets migration.
+- [ ] Add `updated_at` auto-update triggers for `user_profiles`, `projects`, `project_core`, `assets` tables
+- [ ] Mount `ThemeProvider` when dark mode enters scope
+- [ ] `UserProfile` type has `user_id` field that does not match DB schema — reconcile
 
 ---
 
@@ -79,16 +89,16 @@ Dashboard layer fully implemented and merged. All Sprint 1 auth follow-up items 
 
 | File | Status | Description |
 |------|--------|-------------|
-| `database/migrations/001_users.sql` | Applied | `user_profiles` table, RLS, auto-create trigger, idempotency guards |
-| `database/migrations/002_projects.sql` | Applied | `projects` table, `owner_id` FK+index, RLS |
-| `database/migrations/003_project_core.sql` | Planned | `project_core` table — Sprint 3 |
+| `database/migrations/001_users.sql` | Applied | `user_profiles`, RLS, auto-create trigger |
+| `database/migrations/002_projects.sql` | Applied | `projects`, `owner_id` FK+index, RLS |
+| `database/migrations/003_project_core.sql` | Applied | `project_core`, unique index, EXISTS RLS |
 | `database/migrations/004_assets.sql` | Planned | `assets` table — Sprint 4 |
 
 ---
 
 ## Next Sprint
 
-**Sprint 3 — Workspace**
-Branch: `feature/sprint-1-workspace` (active)
+**Sprint 4 — Asset Library**
+Branch: `feature/sprint-1-assets` (active)
 
-See Sprint 3 Workspace Architecture Review for full scope.
+See Asset Library Architecture Review for full scope.
