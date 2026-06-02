@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-06-02
 **Active Branch:** `develop`
-**Latest Merge Commit:** `b09ad0e`
+**Latest Merge Commit:** `fa130e3`
 
 ---
 
@@ -11,12 +11,13 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 4 Asset Library merged — `b09ad0e` |
+| `develop` | Active | Sprint 5 Creative Compass merged — `fa130e3` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
 | `feature/sprint-1-workspace` | Merged | Workspace layer |
 | `feature/sprint-1-assets` | Merged | Asset Library — complete |
+| `feature/sprint-5-compass` | Merged | Creative Compass — complete |
 
 ---
 
@@ -66,6 +67,18 @@ Workspace shell fully implemented.
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
 
+### Sprint 5 — Creative Compass — `1ae5ad8` (merged `fa130e3`)
+Creative Compass fully implemented.
+
+**Deliverables:**
+- `CompassSection` and `SectionType` types added to `@studioos/shared`
+- `database/migrations/005_compass_sections.sql` — `compass_sections` table, `sort_order`, `section_type`, `UNIQUE(project_id, sort_order)`, EXISTS RLS
+- `app/actions/compass.ts` — `getSections`, `addSection`, `updateSection`, `deleteSection`, `reorderSection` Server Actions
+- 50-section limit enforced in `addSection`
+- Three-step sort_order swap in `reorderSection` — satisfies UNIQUE constraint without deferred transactions
+- `components/compass/` — `CompassView` (Server Component), `SectionList`, `SectionCard` (inline edit + reorder), `AddSectionButton`, `AddSectionDialog`, `CompassEmptyState`
+- `/workspace/[projectId]/compass` — full implementation replacing placeholder shell
+
 ### Sprint 4 — Asset Library — `1c38950` (merged `b09ad0e`)
 Asset Library fully implemented. Database bootstrap complete.
 
@@ -112,6 +125,7 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/002_projects.sql` | Applied | `projects`, `owner_id` FK+index, RLS |
 | `database/migrations/003_project_core.sql` | Applied | `project_core`, unique index, EXISTS RLS |
 | `database/migrations/004_assets.sql` | Applied | `assets`, dual FK+indexes, RLS |
+| `database/migrations/005_compass_sections.sql` | Applied | `compass_sections`, sort_order, UNIQUE(project_id, sort_order), EXISTS RLS |
 
 ---
 
@@ -137,12 +151,12 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Feature development paused. Governance layer complete. Sprint 5 architecture review in progress.
+Sprint 5 Creative Compass complete and merged. Context Engine architecture review in progress. Implementation paused.
 
 ## Next Sprint
 
-**Sprint 5 — Creative Compass**
+**Sprint 6 — Context Engine**
 Branch: TBD (pending architecture review approval)
 
-Creative direction panel — vision, tone, and guiding principles for each project.
-Panel shell exists at `/workspace/[projectId]/compass`. Architecture review in progress.
+AI context assembly layer — aggregates project data from Core, Compass, and Assets into
+structured prompts for AI features. Architecture review in progress.
