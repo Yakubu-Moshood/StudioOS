@@ -1,10 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true
+    "lib": ["ES2022", "DOM"],
+    "paths": {
+      "@studioos/shared": ["../../packages/shared/src/index.ts"],
+      "@studioos/context-engine": ["../../packages/context-engine/src/index.ts"],
+      "@studioos/ai-service": ["../../packages/ai-service/src/index.ts"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
