@@ -1,11 +1,4 @@
-export interface GenerateInput {
-  prompt: string
-}
-
-export interface GenerateOutput {
-  text: string
-}
-
-export async function generate(input: GenerateInput): Promise<GenerateOutput> {
-  return { text: `[ai-service stub] Received prompt of ${input.prompt.length} characters.` }
-}
+export { generate } from './services/generate-text'
+export type { GenerateInput } from './types/generate-input'
+export type { GenerateOutput } from './types/generate-output'
+export type { AIProvider } from './providers/ai-provider'
