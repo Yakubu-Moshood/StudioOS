@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
-**Last Updated:** 2026-06-02
+**Last Updated:** 2026-06-03
 **Active Branch:** `develop`
-**Latest Commit:** `ce638b7`
+**Latest Commit:** `eaf8ee3`
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 8 Assembly Engine committed — `ce638b7` |
+| `develop` | Active | Sprint 9 AI Service committed — `eaf8ee3` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -66,6 +66,19 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 9 — AI Service — `eaf8ee3`
+Real Anthropic provider integration. Replaces `generate()` stub with a layered provider architecture.
+
+**Deliverables:**
+- `packages/ai-service/src/types/generate-input.ts` — `GenerateInput`: `prompt`, `systemPrompt?`, `maxTokens?`
+- `packages/ai-service/src/types/generate-output.ts` — `GenerateOutput`: `text`, `inputTokens?`, `outputTokens?`, `model`, `provider`
+- `packages/ai-service/src/providers/ai-provider.ts` — `AIProvider` interface
+- `packages/ai-service/src/providers/anthropic-provider.ts` — `AnthropicProvider` class; all SDK logic isolated; reads `ANTHROPIC_API_KEY` from `process.env`; default model `claude-haiku-4-5-20251001`
+- `packages/ai-service/src/services/generate-text.ts` — `generate()` — delegates to `AnthropicProvider`; no direct SDK imports
+- `packages/ai-service/src/index.ts` — public API exports only: `generate`, `GenerateInput`, `GenerateOutput`, `AIProvider`
+- `@anthropic-ai/sdk@0.26.1` in `dependencies` (runtime); `@types/node` added to `devDependencies`
+- No changes to assembly-engine, context-engine, dependency-engine, shared, apps/web, or database
 
 ### Sprint 8 — Assembly Engine — `ce638b7`
 AI prompt assembly layer. Composes final prompts from assembled context and user input, routes through `@studioos/ai-service`, returns structured responses.
@@ -196,11 +209,11 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 8 Assembly Engine complete. Implementation committed to `develop`. AI Service architecture review in progress.
+Sprint 9 AI Service complete. Real Anthropic provider integration committed to `develop`. Core Panel architecture review in progress.
 
 ## Next Sprint
 
-**Sprint 9 — AI Service**
+**Sprint 10 — Core Panel**
 Branch: TBD (pending architecture review approval)
 
-Real AI provider integration — wires `@studioos/ai-service` to an actual LLM provider, adds model selection, implements request/response handling, error management, and provider abstraction. Architecture review in progress.
+First functional workspace panel — `project_core` data entry (synopsis, genre, tone, themes), save/update Server Actions, and first user-facing AI generation capability via `executeProjectAssembly`. Architecture review in progress.
