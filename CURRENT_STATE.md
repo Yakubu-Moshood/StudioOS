@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
-**Last Updated:** 2026-06-03
-**Active Branch:** `develop`
-**Latest Commit:** `eaf8ee3`
+**Last Updated:** 2026-06-06
+**Active Branch:** `feature/sprint-10-core` (pending merge to `develop`)
+**Latest Commit:** `9dd351f`
 
 ---
 
@@ -18,6 +18,7 @@
 | `feature/sprint-1-workspace` | Merged | Workspace layer |
 | `feature/sprint-1-assets` | Merged | Asset Library — complete |
 | `feature/sprint-5-compass` | Merged | Creative Compass — complete |
+| `feature/sprint-10-core` | Pending merge | Core Panel — complete |
 
 ---
 
@@ -66,6 +67,20 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 10 — Core Panel — `9dd351f`
+First functional workspace panel. `project_core` data entry with save and AI generation.
+
+**Deliverables:**
+- `apps/web/app/actions/core.ts` — `getProjectCore`, `saveProjectCore` Server Actions
+- `saveProjectCore` — upsert on `project_id` (resolves carry-forward missing-row case); `auth.getUser()` guard; themes parsed server-side from comma-separated string to `string[]`; `revalidatePath` on success
+- `apps/web/components/core/core-view.tsx` — async Server Component; fetches `getProjectCore`; renders `CoreForm` with initial data
+- `apps/web/components/core/core-form.tsx` — Client Component; synopsis (Textarea), genre (Select), tone (Select), themes (Input, comma-separated); explicit Save button via `useTransition`; AI Generate section with user instruction Textarea and Generate button calling `executeProjectAssembly(core_only)`
+- `apps/web/components/core/core-generate-panel.tsx` — presentational component; displays AI output with loading state; no `'use client'` directive
+- `apps/web/components/workspace/panels/core-panel.tsx` — wired to `CoreView` with `projectId`
+- `apps/web/app/(app)/workspace/[projectId]/core/page.tsx` — dynamic `generateMetadata` with project title (resolves carry-forward item)
+- No new database migrations — `project_core` table from Sprint 3 consumed as-is
+- No changes to engine packages or `@studioos/shared`
 
 ### Sprint 9 — AI Service — `eaf8ee3`
 Real Anthropic provider integration. Replaces `generate()` stub with a layered provider architecture.
@@ -163,8 +178,8 @@ Asset Library fully implemented. Database bootstrap complete.
 - [ ] Add DB-level `source_type` exclusivity CHECK constraint to `assets` table
 
 ### Carry Forward from Workspace Review
-- [ ] Handle "no `project_core` row" state when Core panel becomes functional (future Core sprint)
-- [ ] Add `generateMetadata` to panel pages to include project title when content is added
+- [x] Handle "no `project_core` row" state — resolved in Sprint 10 via upsert
+- [x] Add `generateMetadata` to Core panel page — resolved in Sprint 10
 - [ ] Replace `h-[calc(100vh-3.5rem)]` with a layout token when nav height stabilizes
 
 ### Future
@@ -209,11 +224,9 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 9 AI Service complete. Real Anthropic provider integration committed to `develop`. Core Panel architecture review in progress.
+Sprint 10 Core Panel complete. Committed to `feature/sprint-10-core` — pending merge to `develop`.
 
 ## Next Sprint
 
-**Sprint 10 — Core Panel**
-Branch: TBD (pending architecture review approval)
-
-First functional workspace panel — `project_core` data entry (synopsis, genre, tone, themes), save/update Server Actions, and first user-facing AI generation capability via `executeProjectAssembly`. Architecture review in progress.
+**Sprint 11 — TBD**
+Branch: TBD (pending Sprint 10 merge and Sprint 11 scoping)
