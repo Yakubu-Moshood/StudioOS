@@ -20,6 +20,15 @@ export interface AssetContext {
   resolvedUrl: string | null
 }
 
+export interface BlockContext {
+  id: string
+  type: string
+  title: string
+  content: string | null
+  status: string
+  order: number
+}
+
 export interface ProjectContext {
   projectId: string
   projectTitle: string
@@ -27,6 +36,7 @@ export interface ProjectContext {
   core: CoreContext | null
   compass: CompassEntryContext[]
   assets: AssetContext[]
+  blocks: BlockContext[]
 }
 
 export interface SerializeOptions {
