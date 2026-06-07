@@ -29,6 +29,15 @@ export interface BlockContext {
   order: number
 }
 
+export interface KnowledgeContext {
+  id: string
+  title: string
+  content: string | null
+  type: string
+  source_url: string | null
+  source_title: string | null
+}
+
 export interface ProjectContext {
   projectId: string
   projectTitle: string
@@ -37,6 +46,7 @@ export interface ProjectContext {
   compass: CompassEntryContext[]
   assets: AssetContext[]
   blocks: BlockContext[]
+  knowledge: KnowledgeContext[]
 }
 
 export interface SerializeOptions {
