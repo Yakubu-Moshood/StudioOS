@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
-**Last Updated:** 2026-06-07
-**Active Branch:** `feature/sprint-13-knowledge`
-**Latest Commit:** `8326e29` (feat — Sprint 13 Knowledge Base Panel)
+**Last Updated:** 2026-06-08
+**Active Branch:** `feature/sprint-14-project-management`
+**Latest Commit:** `9ff76ea` (feat — Sprint 14 Project Management)
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 12 AI Chat Panel merged — `f4aaef6` |
+| `develop` | Active | Sprint 13 Knowledge Base Panel merged — `85e7d8b` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -21,11 +21,33 @@
 | `feature/sprint-10-core` | Merged | Core Panel — complete |
 | `feature/sprint-11-map` | Merged | Production Map Panel — complete |
 | `feature/sprint-12-ai-chat` | Merged | AI Chat Panel — complete |
-| `feature/sprint-13-knowledge` | Pending merge | Knowledge Base Panel — complete |
+| `feature/sprint-13-knowledge` | Merged | Knowledge Base Panel — complete |
+| `feature/sprint-14-project-management` | Pending merge | Project Management — complete |
 
 ---
 
 ## Sprint History
+
+### Sprint 14 — Project Management — `9ff76ea`
+Full project lifecycle management. Archive, restore, rename, and delete projects from the dashboard. Archived projects remain fully accessible in the workspace with a restoration banner. Bundles three carry-forward cleanup items from Asset Library review (AssetSourceType export, external_url link rendering, bulk signed URLs). `010_project_archiving.sql` and `011_updated_at_triggers.sql` pending application to Supabase.
+
+**Deliverables:**
+- `database/migrations/010_project_archiving.sql` — `ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS archived_at timestamptz DEFAULT NULL`; idempotent; no index (per CTO decision); no RLS changes required
+- `database/migrations/011_updated_at_triggers.sql` — `CREATE OR REPLACE FUNCTION public.set_updated_at()` RETURNS trigger LANGUAGE plpgsql; SECURITY INVOKER (default — no elevated permissions); `DROP TRIGGER IF EXISTS / CREATE TRIGGER` pattern applied to `user_profiles`, `projects`, `project_core`, `assets`, `knowledge_entries`; BEFORE UPDATE FOR EACH ROW
+- `packages/shared/src/types/project.ts` — `archived_at: string | null` added to `Project` interface
+- `packages/shared/src/types/index.ts` + `packages/shared/src/index.ts` — `AssetSourceType` added to barrel exports (carry-forward from Sprint 4)
+- `apps/web/app/actions/projects.ts` — `ProjectFilter` type (`'all' | 'active' | 'archived'`); `getProjects` updated with filter param (default `'active'`); `renameProject` (auth + `.update({title}).eq('id').eq('owner_id')` + dual revalidatePath); `archiveProject` (dual-writes `archived_at` + `status: 'archived'`); `restoreProject` (clears `archived_at`, sets `status: 'active'`); `deleteProject` (fetch-then-delete ownership pattern — non-owner gets same "not found" response as missing project, no enumeration; `revalidatePath('/dashboard')`)
+- `apps/web/app/(app)/dashboard/page.tsx` — `searchParams: Promise<{filter?}>` awaited; `ProjectFilterValue` coercion guard; `ProjectFilter` tab bar rendered; `CreateProjectButton` unconditional (no longer hidden when project count > 0)
+- `apps/web/components/dashboard/project-filter.tsx` — NEW; Link-based Active/Archived/All tab bar; `'active'` default links to `/dashboard` (no query param); `ProjectFilterValue` exported as single source of truth
+- `apps/web/components/dashboard/project-grid.tsx` — `filter: ProjectFilterValue` prop; per-filter empty states (`active`: show Create; `archived`/`all`: no Create prompt)
+- `apps/web/components/dashboard/project-card.tsx` — converted to `'use client'`; `useState(false)` for `deleteOpen`; stretched-link pattern (`before:absolute before:inset-0 before:content-['']` on title link; `relative` Card; `relative z-10` actions div) — avoids invalid `<button>` inside `<a>`; `Archived` badge when `archived_at !== null`; `ProjectActionsMenu` receives `onDeleteSelect`; `DeleteProjectDialog` mounted at root level
+- `apps/web/components/dashboard/project-actions-menu.tsx` — NEW `'use client'`; MoreHorizontal trigger (h-7 w-7 ghost); Rename → `setRenameOpen(true)`; Archive|Restore toggle driven by `isArchived`; `DropdownMenuSeparator`; Delete → `onDeleteSelect` prop call (text-destructive); `RenameProjectDialog` mounted here
+- `apps/web/components/dashboard/rename-project-dialog.tsx` — NEW `'use client'`; `useEffect(() => { if (open) setTitle(project.title) }, [open, project.title])` ensures dialog pre-fills current title after server re-render; Save disabled when `!title.trim() || title.trim() === project.title || isPending`; close blocked during pending
+- `apps/web/components/dashboard/delete-project-dialog.tsx` — NEW `'use client'`; typed title confirmation (exact match `=== project.title`, no trim — user must type exactly); Destructive button disabled until match; `useTransition + useRouter`; `router.refresh()` on success; confirmation reset on close; close blocked during pending
+- `apps/web/components/workspace/archived-project-banner.tsx` — NEW `'use client'`; amber strip (`border-amber-200 bg-amber-50`); Archive icon + "This project is archived."; Restore Project button (`border-amber-300 hover:bg-amber-100`); `useTransition + router.refresh()` after `restoreProject` success
+- `apps/web/app/(app)/workspace/[projectId]/layout.tsx` — `ArchivedProjectBanner` imported; rendered between `WorkspaceHeader` and flex-1 content div when `project.archived_at !== null`; archived projects remain fully accessible — no redirect
+- `apps/web/components/assets/asset-card.tsx` — `ExternalLink` added to lucide-react imports; `asset.external_url` rendered as `<a href target="_blank" rel="noopener noreferrer">` with icon and `truncate hover:underline` (carry-forward from Sprint 4)
+- `apps/web/app/actions/assets.ts` — `Promise.all(N × createSignedUrl)` replaced with single `createSignedUrls(uploadedPaths, 3600)` bulk call; results keyed by `path` into `Map<string, string>` (response order not guaranteed); mixed `uploaded`/`external` asset lists handled correctly (carry-forward from Sprint 4)
 
 ### Sprint 13 — Knowledge Base Panel — `8326e29`
 Sixth and final workspace panel. Per-project knowledge base for research notes, URL references, and working documents. All entries assembled into AI context under `full_context` mode, completing data domain coverage across core, compass, production map, assets, and knowledge. `009_knowledge.sql` applied to Supabase 2026-06-07.
@@ -190,19 +212,19 @@ Asset Library fully implemented. Database bootstrap complete.
 ## Follow-Up Tasks
 
 ### Carry Forward from Asset Library Review
-- [ ] Export `AssetSourceType` from `@studioos/shared` public API (`types/index.ts` + `index.ts`)
-- [ ] Render `external_url` as a clickable link in `AssetCard`
-- [ ] Replace `createSignedUrl` loop with bulk `createSignedUrls` call in `getAssets`
+- [x] Export `AssetSourceType` from `@studioos/shared` public API — resolved Sprint 14
+- [x] Render `external_url` as a clickable link in `AssetCard` — resolved Sprint 14
+- [x] Replace `createSignedUrl` loop with bulk `createSignedUrls` call in `getAssets` — resolved Sprint 14
 - [ ] Storage cleanup on `uploadAsset` DB failure (prevent orphaned storage files)
 - [ ] Add DB-level `source_type` exclusivity CHECK constraint to `assets` table
 
 ### Carry Forward from Workspace Review
-- [x] Handle "no `project_core` row" state — resolved in Sprint 10 via upsert
-- [x] Add `generateMetadata` to Core panel page — resolved in Sprint 10
+- [x] Handle "no `project_core` row" state — resolved Sprint 10 via upsert
+- [x] Add `generateMetadata` to Core panel page — resolved Sprint 10
 - [ ] Replace `h-[calc(100vh-3.5rem)]` with a layout token when nav height stabilizes
 
 ### Future
-- [ ] Add `updated_at` auto-update triggers for `user_profiles`, `projects`, `project_core`, `assets`, `knowledge_entries` tables
+- [x] Add `updated_at` auto-update triggers for `user_profiles`, `projects`, `project_core`, `assets`, `knowledge_entries` — resolved Sprint 14 (`011_updated_at_triggers.sql`)
 - [ ] Mount `ThemeProvider` when dark mode enters scope
 - [ ] `UserProfile` type has `user_id` field that does not match DB schema — reconcile
 
@@ -221,6 +243,8 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/007_blocks.sql` | Applied 2026-06-07 | `blocks` table, `project_id`/`parent_id` indexes, RLS Pattern B |
 | `database/migrations/008_conversations.sql` | Applied 2026-06-07 | `conversations` (UNIQUE project_id) + `messages` tables, RLS Pattern B |
 | `database/migrations/009_knowledge.sql` | Applied 2026-06-07 | `knowledge_entries` table, Pattern B RLS, `source_title`/`source_url`, attribution `user_id` |
+| `database/migrations/010_project_archiving.sql` | Pending | `projects.archived_at timestamptz DEFAULT NULL` — apply before Sprint 14 deploy |
+| `database/migrations/011_updated_at_triggers.sql` | Pending | `set_updated_at()` BEFORE UPDATE trigger on 5 tables — apply before Sprint 14 deploy |
 
 ---
 
@@ -246,9 +270,15 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 13 Knowledge Base Panel complete on `feature/sprint-13-knowledge`. Migration `009_knowledge.sql` applied to Supabase 2026-06-07. Lint PASS, typecheck PASS, build PASS. Pending merge to `develop`.
+Sprint 14 Project Management complete on `feature/sprint-14-project-management`. Typecheck PASS, lint PASS (7/7). Migrations `010_project_archiving.sql` and `011_updated_at_triggers.sql` committed — pending application to Supabase before production deploy. Pending merge to `develop`.
 
 ## Next Sprint
 
-**Sprint 14 — Project Management**
-Edit project title/format, archive projects, delete projects. Bundles carry-forward cleanup items (P1–P7 from Asset Library and Workspace reviews). Foundational UX work — clean project state before Sprint 15 multi-turn AI conversations accrue history.
+**Sprint 15 — User Profile & Account**
+
+Top candidates:
+
+1. **User Profile Panel** — View/edit display name, avatar, account settings. Also resolves the known `UserProfile.user_id` vs DB schema field mismatch that has been deferred since Sprint 1.
+2. **Project Format Edit** — Users currently cannot change a project's format after creation. A project settings surface (rename + format change) would complete the project management story started in Sprint 14.
+3. **Dashboard Enhancements** — Search/filter projects by title, sort by last updated, project thumbnails or color labels. Low DB risk; high UX value as project count grows.
+4. **Storage Hardening** — Resolve two deferred carry-forward items: `uploadAsset` storage orphan cleanup on DB failure; `source_type` exclusivity CHECK constraint on `assets` table.
