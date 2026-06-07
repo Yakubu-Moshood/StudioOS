@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
-**Last Updated:** 2026-06-06
-**Active Branch:** `feature/sprint-10-core` (pending merge to `develop`)
-**Latest Commit:** `9dd351f`
+**Last Updated:** 2026-06-07
+**Active Branch:** `feature/sprint-11-map`
+**Latest Commit:** `616de9e` (feat — Sprint 11 Production Map Panel)
 
 ---
 
@@ -11,14 +11,15 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 9 AI Service committed — `eaf8ee3` |
+| `develop` | Active | Sprint 10 Core Panel merged — `1e3c9d1` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
 | `feature/sprint-1-workspace` | Merged | Workspace layer |
 | `feature/sprint-1-assets` | Merged | Asset Library — complete |
 | `feature/sprint-5-compass` | Merged | Creative Compass — complete |
-| `feature/sprint-10-core` | Pending merge | Core Panel — complete |
+| `feature/sprint-10-core` | Merged | Core Panel — complete |
+| `feature/sprint-11-map` | Pending merge | Production Map Panel — complete |
 
 ---
 
@@ -67,6 +68,22 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 11 — Production Map Panel — `616de9e`
+Second functional workspace panel. Full CRUD block management with inline edit, reorder, and delete. `007_blocks.sql` applied to Supabase 2026-06-07.
+
+**Deliverables:**
+- `database/migrations/007_blocks.sql` — `blocks` table; `sort_order integer not null default 0` (no UNIQUE constraint); `parent_id uuid references public.blocks(id) on delete set null`; `type` and `status` CHECK constraints; `blocks_project_id_idx` and `blocks_parent_id_idx` indexes; RLS Pattern B (EXISTS through `projects.owner_id`)
+- `apps/web/app/actions/blocks.ts` — `getBlocks`, `addBlock`, `updateBlock`, `deleteBlock`, `reorderBlock` Server Actions; `BlockRow` interface with `sort_order: number`; `rowToBlock` function maps `sort_order → Block.order` (single translation point); 200-block limit in `addBlock`; two direct UPDATEs in `reorderBlock` (no temp value — no UNIQUE constraint); `auth.getUser()` guard in all four write actions
+- `apps/web/components/map/map-view.tsx` — async Server Component; fetches `getBlocks`; renders `AddBlockButton` in header always; shows `MapEmptyState` or `BlockList`
+- `apps/web/components/map/block-list.tsx` — Server Component; maps `Block[]` to `BlockCard`; computes `isFirst`/`isLast` from index
+- `apps/web/components/map/block-card.tsx` — Client Component; inline edit (type, title, content, status via shadcn Select); reorder up/down (ChevronUp/ChevronDown); delete; single `useTransition` shared across all interactions; edit state resets to current block values on open
+- `apps/web/components/map/add-block-button.tsx` — Client Component; `useState(open)`; renders `AddBlockDialog`
+- `apps/web/components/map/add-block-dialog.tsx` — Client Component; `<form onSubmit>` + `e.preventDefault()` pattern; shadcn Select for type (default: `scene`) and status (default: `draft`); `reset()` on close; `handleOpenChange` guards close during pending transition
+- `apps/web/components/map/map-empty-state.tsx` — presentational; no directive
+- `apps/web/components/workspace/panels/map-panel.tsx` — replaced stub; renders `<MapView projectId={projectId} />`
+- `apps/web/app/(app)/workspace/[projectId]/map/page.tsx` — replaced stub; dynamic `generateMetadata` with `getProject`; async `MapPage` awaiting `params`
+- `Block.order` frozen in `@studioos/shared` — no changes to shared package; `sort_order` lives only in DB schema and `BlockRow` persistence interface
 
 ### Sprint 10 — Core Panel — `9dd351f`
 First functional workspace panel. `project_core` data entry with save and AI generation.
@@ -199,6 +216,7 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/004_assets.sql` | Applied | `assets`, dual FK+indexes, RLS |
 | `database/migrations/005_compass_sections.sql` | Applied | `compass_sections`, sort_order, UNIQUE(project_id, sort_order), EXISTS RLS |
 | `database/migrations/006_artifact_dependencies.sql` | Applied | `artifact_dependencies`, 6-field unique index, trigger-based orphan cleanup, EXISTS RLS |
+| `database/migrations/007_blocks.sql` | Applied 2026-06-07 | `blocks` table, `project_id`/`parent_id` indexes, RLS Pattern B |
 
 ---
 
@@ -224,9 +242,9 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 10 Core Panel complete. Committed to `feature/sprint-10-core` — pending merge to `develop`.
+Sprint 11 Production Map Panel complete on `feature/sprint-11-map` @ `616de9e`. Database migration `007_blocks.sql` applied to Supabase 2026-06-07. Lint PASS, typecheck PASS, build PASS. Pending merge to `develop`.
 
 ## Next Sprint
 
-**Sprint 11 — TBD**
-Branch: TBD (pending Sprint 10 merge and Sprint 11 scoping)
+**Sprint 12 — TBD**
+Sprint 11 merge to `develop` required before Sprint 12 planning begins.
