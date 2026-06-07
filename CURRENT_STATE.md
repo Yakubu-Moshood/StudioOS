@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
 **Last Updated:** 2026-06-07
-**Active Branch:** `feature/sprint-12-ai-chat`
-**Latest Commit:** `a11a86b` (feat — Sprint 12 AI Chat Panel)
+**Active Branch:** `feature/sprint-13-knowledge`
+**Latest Commit:** `8326e29` (feat — Sprint 13 Knowledge Base Panel)
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 11 Production Map Panel merged — `d08ee40` |
+| `develop` | Active | Sprint 12 AI Chat Panel merged — `f4aaef6` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -20,55 +20,33 @@
 | `feature/sprint-5-compass` | Merged | Creative Compass — complete |
 | `feature/sprint-10-core` | Merged | Core Panel — complete |
 | `feature/sprint-11-map` | Merged | Production Map Panel — complete |
-| `feature/sprint-12-ai-chat` | Pending merge | AI Chat Panel — complete |
+| `feature/sprint-12-ai-chat` | Merged | AI Chat Panel — complete |
+| `feature/sprint-13-knowledge` | Pending merge | Knowledge Base Panel — complete |
 
 ---
 
 ## Sprint History
 
-### Bootstrap — `main` @ `88d46a9`
-Monorepo foundation. pnpm workspaces, Turborepo, Next.js 15, Tailwind CSS v4,
-shadcn/ui, ESLint v9, TypeScript strict mode, six `@studioos/*` package stubs.
-
-### Sprint 1 — Shared Package — `ce05abc`
-`@studioos/shared` fully implemented.
+### Sprint 13 — Knowledge Base Panel — `8326e29`
+Sixth and final workspace panel. Per-project knowledge base for research notes, URL references, and working documents. All entries assembled into AI context under `full_context` mode, completing data domain coverage across core, compass, production map, assets, and knowledge. `009_knowledge.sql` applied to Supabase 2026-06-07.
 
 **Deliverables:**
-- Types: `User`, `UserProfile`, `Project`, `ProjectCore`, `Block`, `CreativeCompass`, `Asset`, `KnowledgeEntry`, `Conversation`, `Message`
-- Utils: `formatDate`, `formatRelativeDate`, `generateId`, `isValidId`, `slugify`, `truncate`, `capitalize`
-- Constants: `PROJECT_FORMATS`, `PROJECT_STATUSES`
-
-### Sprint 1 — Authentication — `dcbb7c4`
-Authentication layer fully implemented.
-
-**Deliverables:**
-- Supabase SSR three-client setup (browser, server, middleware)
-- `middleware.ts` — route protection for `/dashboard`, `/workspace`
-- `app/(auth)/` — sign-in, sign-up pages and centered layout
-- `app/auth/callback/route.ts` — PKCE code exchange with validated `next` param
-- `database/migrations/001_users.sql` — `user_profiles` table, RLS, auto-create trigger
-
-### Sprint 1 — Dashboard — `123182e`
-Dashboard layer fully implemented. All Sprint 1 auth follow-up items resolved.
-
-**Deliverables:**
-- `app/(app)/layout.tsx` — authenticated shell with TopNav, UserMenu, sign-out
-- `app/(app)/dashboard/` — project grid, create-project dialog, loading skeleton
-- `app/actions/auth.ts`, `app/actions/projects.ts` — Server Actions
-- `database/migrations/002_projects.sql` — `projects` table, `owner_id` FK+index, RLS
-
-### Sprint 3 — Workspace — `5cc8e06`
-Workspace shell fully implemented.
-
-**Deliverables:**
-- Sub-route panel architecture (`/core`, `/compass`, `/map`, `/assets`)
-- `WorkspaceHeader` — back navigation, project title, format badge
-- `WorkspaceSidebar` — `useSelectedLayoutSegment()` active state, four panel links
-- `app/(app)/workspace/[projectId]/layout.tsx` — project ownership validation
-- `app/(app)/workspace/[projectId]/page.tsx` — redirect to `/core`
-- Four panel shell pages + components (Core, Compass, Map, Assets)
-- `app/actions/projects.ts` — `getProject(id)` added
-- `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+- `database/migrations/009_knowledge.sql` — `knowledge_entries` table (10 columns); Pattern B RLS (`project_id → projects.owner_id`) consistent with all workspace-content tables; `user_id` stored as attribution field (set from `auth.getUser()` on insert, not the RLS gate); `source_title text` nullable (Amendment A); `knowledge_entries_project_id_idx`; `type` CHECK constraint (`text | document | url | other`, default `text`)
+- `apps/web/app/actions/knowledge.ts` — `getKnowledgeEntries`, `addKnowledgeEntry`, `updateKnowledgeEntry`, `deleteKnowledgeEntry`; 100-entry limit enforced in `addKnowledgeEntry`; `user_id` always sourced from `auth.getUser()` server-side; `source_url`/`source_title` normalized (`.trim() || null` on add and update); `updated_at` set manually on update; double-filter (`.eq('id').eq('project_id')`) on update/delete as defensive hardening
+- `packages/shared/src/types/knowledge.ts` — `source_title: string | null` added to `KnowledgeEntry` (required by Amendment A; type must match DB schema)
+- `packages/context-engine/src/types.ts` — `KnowledgeContext` interface (`id`, `title`, `content`, `type`, `source_url`, `source_title`); `knowledge: KnowledgeContext[]` added to `ProjectContext`
+- `packages/context-engine/src/assemble.ts` — `knowledge_entries` query added to `Promise.all` (selects 6 columns, orders by `created_at ASC`); `rawKnowledge` cast; `knowledgeContexts` mapping (all field names match DB columns — no remapping needed); `knowledge: knowledgeContexts` in return value
+- `packages/context-engine/src/serialize.ts` — `buildKnowledgeBlock` (format: `- [type] title — "source_title" (source_url)` with indented content snippet ≤300 chars); trim priority updated (Amendment B): assets → knowledge → compass → blocks → core (blocks now most protected after core; compass trimmed before blocks); `knowledgeBlock` inserted between `blocksBlock` and `assetsBlock` in `parts[]` (prompt order: core → compass → production map → knowledge base → assets); `total()` includes `estimateTokens(knowledgeBlock)`
+- `packages/assembly-engine/src/build.ts` — `filterContextByMode` updated: `compass_only`, `core_only`, `bare` all include `knowledge: []`; `full_context` passes knowledge through unchanged; `knowledgeCharCount` computed; `knowledge` segment added to `segments[]` between `blocks` and `assets`
+- `apps/web/components/workspace/workspace-sidebar.tsx` — `BookOpen` added to lucide-react imports; `{ segment: 'knowledge', label: 'Knowledge', icon: BookOpen }` added as 6th nav item
+- `apps/web/app/(app)/workspace/[projectId]/knowledge/page.tsx` — dynamic `generateMetadata`; async `KnowledgePage` awaiting `params`; renders `KnowledgePanel`
+- `apps/web/components/workspace/panels/knowledge-panel.tsx` — panel wrapper; renders `KnowledgeView`
+- `apps/web/components/knowledge/knowledge-view.tsx` — async Server Component; fetches `getKnowledgeEntries`; header (title + description) + `AddKnowledgeButton`; conditionally renders `KnowledgeEmptyState` or `KnowledgeList`
+- `apps/web/components/knowledge/knowledge-list.tsx` — no directive; maps `KnowledgeEntry[]` to `KnowledgeCard`
+- `apps/web/components/knowledge/knowledge-card.tsx` — `'use client'`; inline edit (5 fields: type, title, source title, source URL, content); native `<select>` for type (consistent with `SectionCard` pattern); source row shows `ExternalLink` icon + `<a>` link when `source_url` present (link text = `source_title || source_url`); plain `<span>` when only `source_title`; `line-clamp-3` content preview in display mode; edit/delete buttons on hover (`opacity-0 group-hover:opacity-100`); single `useTransition` for both save and delete; edit state resets from current `entry` prop on `handleEdit()`
+- `apps/web/components/knowledge/add-knowledge-button.tsx` — `'use client'`; `useState(open)` → `AddKnowledgeDialog`
+- `apps/web/components/knowledge/add-knowledge-dialog.tsx` — `'use client'`; 5 fields (type, title, source title, source URL, content); all optional except title; source URL visible for all types (Amendment D7); `onOpenChange` guarded by `isPending`; `reset()` on close
+- `apps/web/components/knowledge/knowledge-empty-state.tsx` — no directive; `BookOpen` icon; dashed border; "No knowledge entries yet" prompt
 
 ### Sprint 12 — AI Chat Panel — `a11a86b`
 In-project AI assistant panel. Users send messages and receive AI responses grounded in the complete project context (core, compass, production map, assets). Conversations persisted to the database. `008_conversations.sql` applied to Supabase 2026-06-07.
@@ -78,7 +56,7 @@ In-project AI assistant panel. Users send messages and receive AI responses grou
 - `apps/web/app/actions/chat.ts` — `getOrCreateConversation` (lifecycle contract: sole entry point for all conversation access; handles 23505 race via re-SELECT) and `sendMessage` (takes `{ projectId, content }` only — no `conversationId` from client; AI-first atomicity: no DB writes on AI failure; orphan cleanup on assistant INSERT failure; calls `getOrCreateConversation` internally)
 - `packages/context-engine/src/types.ts` — `BlockContext` interface; `blocks: BlockContext[]` added to `ProjectContext`
 - `packages/context-engine/src/assemble.ts` — `blocks` query added to `Promise.all`; `sort_order → order` mapping consistent with Sprint 11 `rowToBlock` pattern
-- `packages/context-engine/src/serialize.ts` — `buildBlocksBlock`; trim priority updated: assets → blocks → compass → core (core never trimmed)
+- `packages/context-engine/src/serialize.ts` — `buildBlocksBlock`; trim priority at Sprint 12: assets → blocks → compass → core (superseded by Sprint 13 Amendment B)
 - `packages/assembly-engine/src/build.ts` — `filterContextByMode` strips `blocks: []` from `compass_only`, `core_only`, `bare`; `blocks` segment added to `AssemblyRequest.segments[]`; `packages/assembly-engine/tsconfig.json` — `"types": ["node"]` added (resolved pre-existing masked typecheck error)
 - `apps/web/components/chat/chat-view.tsx` — async Server Component; calls `getOrCreateConversation(projectId)`; passes `initialMessages` to `ChatInterface`
 - `apps/web/components/chat/chat-interface.tsx` — Client Component; `useOptimistic` for immediate user message display; `useTransition` for `sendMessage`; `isPending` "Thinking…" pulse; Enter-to-send; 2,000 char limit with counter; auto-scroll to latest message
@@ -204,6 +182,9 @@ Asset Library fully implemented. Database bootstrap complete.
 - `/workspace/[projectId]/assets` — full implementation replacing placeholder shell
 - shadcn `tabs` and `textarea` installed
 
+### Sprint 1 — Bootstrap → Auth → Dashboard → Workspace
+*(Sprints 1–3 history preserved — see git log for full detail)*
+
 ---
 
 ## Follow-Up Tasks
@@ -221,7 +202,7 @@ Asset Library fully implemented. Database bootstrap complete.
 - [ ] Replace `h-[calc(100vh-3.5rem)]` with a layout token when nav height stabilizes
 
 ### Future
-- [ ] Add `updated_at` auto-update triggers for `user_profiles`, `projects`, `project_core`, `assets` tables
+- [ ] Add `updated_at` auto-update triggers for `user_profiles`, `projects`, `project_core`, `assets`, `knowledge_entries` tables
 - [ ] Mount `ThemeProvider` when dark mode enters scope
 - [ ] `UserProfile` type has `user_id` field that does not match DB schema — reconcile
 
@@ -239,6 +220,7 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/006_artifact_dependencies.sql` | Applied | `artifact_dependencies`, 6-field unique index, trigger-based orphan cleanup, EXISTS RLS |
 | `database/migrations/007_blocks.sql` | Applied 2026-06-07 | `blocks` table, `project_id`/`parent_id` indexes, RLS Pattern B |
 | `database/migrations/008_conversations.sql` | Applied 2026-06-07 | `conversations` (UNIQUE project_id) + `messages` tables, RLS Pattern B |
+| `database/migrations/009_knowledge.sql` | Applied 2026-06-07 | `knowledge_entries` table, Pattern B RLS, `source_title`/`source_url`, attribution `user_id` |
 
 ---
 
@@ -264,9 +246,9 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 12 AI Chat Panel complete on `feature/sprint-12-ai-chat` @ `a11a86b`. Database migrations `007_blocks.sql` and `008_conversations.sql` both applied to Supabase 2026-06-07. Lint PASS, typecheck PASS, build PASS. Pending merge to `develop`.
+Sprint 13 Knowledge Base Panel complete on `feature/sprint-13-knowledge`. Migration `009_knowledge.sql` applied to Supabase 2026-06-07. Lint PASS, typecheck PASS, build PASS. Pending merge to `develop`.
 
 ## Next Sprint
 
-**Sprint 13 — TBD**
-Sprint 12 merge to `develop` required before Sprint 13 planning begins.
+**Sprint 14 — Project Management**
+Edit project title/format, archive projects, delete projects. Bundles carry-forward cleanup items (P1–P7 from Asset Library and Workspace reviews). Foundational UX work — clean project state before Sprint 15 multi-turn AI conversations accrue history.
