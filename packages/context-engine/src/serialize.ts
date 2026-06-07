@@ -46,6 +46,17 @@ function buildAssetsBlock(assets: ProjectContext['assets']): string {
   return lines.join('\n')
 }
 
+function buildBlocksBlock(blocks: ProjectContext['blocks']): string {
+  if (blocks.length === 0) return ''
+
+  const lines: string[] = ['## Production Map']
+  for (const block of blocks) {
+    const snippet = block.content ? ` — ${block.content.slice(0, 200)}` : ''
+    lines.push(`- [${block.type.toUpperCase()}] ${block.title} (${block.status})${snippet}`)
+  }
+  return lines.join('\n')
+}
+
 export function serializeContext(
   ctx: ProjectContext,
   options?: SerializeOptions
@@ -55,31 +66,36 @@ export function serializeContext(
   const coreBlock = buildCoreBlock(ctx)
   const coreTokens = estimateTokens(coreBlock)
 
-  // Start with full sets; trim assets first, then compass (highest sort_order last)
+  // Trim priority (lowest to highest): assets → blocks → compass; core never trimmed
   let compassEntries = [...ctx.compass]
+  let blockEntries = [...ctx.blocks]
   let assetEntries = [...ctx.assets]
 
   let compassBlock = buildCompassBlock(compassEntries)
+  let blocksBlock = buildBlocksBlock(blockEntries)
   let assetsBlock = buildAssetsBlock(assetEntries)
 
-  while (
-    coreTokens + estimateTokens(compassBlock) + estimateTokens(assetsBlock) > budget &&
-    assetEntries.length > 0
-  ) {
+  const total = () =>
+    coreTokens + estimateTokens(compassBlock) + estimateTokens(blocksBlock) + estimateTokens(assetsBlock)
+
+  while (total() > budget && assetEntries.length > 0) {
     assetEntries = assetEntries.slice(0, -1)
     assetsBlock = buildAssetsBlock(assetEntries)
   }
 
-  while (
-    coreTokens + estimateTokens(compassBlock) + estimateTokens(assetsBlock) > budget &&
-    compassEntries.length > 0
-  ) {
+  while (total() > budget && blockEntries.length > 0) {
+    blockEntries = blockEntries.slice(0, -1)
+    blocksBlock = buildBlocksBlock(blockEntries)
+  }
+
+  while (total() > budget && compassEntries.length > 0) {
     compassEntries = compassEntries.slice(0, -1)
     compassBlock = buildCompassBlock(compassEntries)
   }
 
   const parts: string[] = [coreBlock]
   if (compassBlock) parts.push(compassBlock)
+  if (blocksBlock) parts.push(blocksBlock)
   if (assetsBlock) parts.push(assetsBlock)
 
   const text = parts.join('\n\n')

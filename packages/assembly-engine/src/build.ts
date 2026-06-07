@@ -10,11 +10,11 @@ function filterContextByMode(ctx: ProjectContext, mode: AssemblyMode): ProjectCo
     case 'full_context':
       return ctx
     case 'compass_only':
-      return { ...ctx, core: null, assets: [] }
+      return { ...ctx, core: null, assets: [], blocks: [] }
     case 'core_only':
-      return { ...ctx, compass: [], assets: [] }
+      return { ...ctx, compass: [], assets: [], blocks: [] }
     case 'bare':
-      return { ...ctx, core: null, compass: [], assets: [] }
+      return { ...ctx, core: null, compass: [], assets: [], blocks: [] }
   }
 }
 
@@ -45,6 +45,10 @@ export async function buildRequest(
     .map((s) => s.title + ' ' + s.content)
     .join(' ').length
 
+  const blocksCharCount = filteredContext.blocks
+    .map((b) => b.title + (b.content ?? ''))
+    .join(' ').length
+
   const assetsCharCount = filteredContext.assets
     .map((a) => a.name + (a.description ?? ''))
     .join(' ').length
@@ -59,6 +63,11 @@ export async function buildRequest(
       segmentName: 'compass',
       included: filteredContext.compass.length > 0,
       characterCount: compassCharCount,
+    },
+    {
+      segmentName: 'blocks',
+      included: filteredContext.blocks.length > 0,
+      characterCount: blocksCharCount,
     },
     {
       segmentName: 'assets',

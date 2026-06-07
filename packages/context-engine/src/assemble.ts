@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Asset, CompassSection, ProjectCore } from '@studioos/shared'
-import type { AssetContext, CompassEntryContext, CoreContext, ProjectContext } from './types'
+import type { AssetContext, BlockContext, CompassEntryContext, CoreContext, ProjectContext } from './types'
 
 const INCLUDED_ASSET_TYPES = ['image', 'document']
 
@@ -8,7 +8,7 @@ export async function assembleContext(
   client: SupabaseClient,
   projectId: string
 ): Promise<ProjectContext> {
-  const [projectResult, coreResult, compassResult, assetsResult] = await Promise.all([
+  const [projectResult, coreResult, compassResult, assetsResult, blocksResult] = await Promise.all([
     client
       .from('projects')
       .select('id, title, format, status')
@@ -29,6 +29,11 @@ export async function assembleContext(
       .select('*')
       .eq('project_id', projectId)
       .in('type', INCLUDED_ASSET_TYPES),
+    client
+      .from('blocks')
+      .select('id, type, title, content, status, sort_order')
+      .eq('project_id', projectId)
+      .order('sort_order', { ascending: true }),
   ])
 
   // Graceful fallback — RLS returns null/empty rather than throwing on auth failure
@@ -42,6 +47,10 @@ export async function assembleContext(
   const coreData = coreResult.data as ProjectCore | null
   const sections = (compassResult.data ?? []) as CompassSection[]
   const rawAssets = (assetsResult.data ?? []) as Asset[]
+  const rawBlocks = (blocksResult.data ?? []) as Array<{
+    id: string; type: string; title: string; content: string | null
+    status: string; sort_order: number
+  }>
 
   const coreContext: CoreContext | null = coreData
     ? {
@@ -59,6 +68,15 @@ export async function assembleContext(
       content: s.content,
       sectionType: s.section_type,
     }))
+
+  const blockContexts: BlockContext[] = rawBlocks.map((b) => ({
+    id: b.id,
+    type: b.type,
+    title: b.title,
+    content: b.content,
+    status: b.status,
+    order: b.sort_order,
+  }))
 
   const assetContexts: AssetContext[] = await Promise.all(
     rawAssets.map(async (asset): Promise<AssetContext> => {
@@ -91,5 +109,6 @@ export async function assembleContext(
     core: coreContext,
     compass: compassEntries,
     assets: assetContexts,
+    blocks: blockContexts,
   }
 }
