@@ -1,8 +1,8 @@
 # StudioOS — Current State
 
 **Last Updated:** 2026-06-07
-**Active Branch:** `feature/sprint-11-map`
-**Latest Commit:** `616de9e` (feat — Sprint 11 Production Map Panel)
+**Active Branch:** `feature/sprint-12-ai-chat`
+**Latest Commit:** `a11a86b` (feat — Sprint 12 AI Chat Panel)
 
 ---
 
@@ -11,7 +11,7 @@
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | Stable | Repository bootstrap — commit `88d46a9` |
-| `develop` | Active | Sprint 10 Core Panel merged — `1e3c9d1` |
+| `develop` | Active | Sprint 11 Production Map Panel merged — `d08ee40` |
 | `feature/sprint-1-shared` | Merged | `@studioos/shared` package |
 | `feature/sprint-1-auth` | Merged | Authentication layer |
 | `feature/sprint-1-dashboard` | Merged | Dashboard layer |
@@ -19,7 +19,8 @@
 | `feature/sprint-1-assets` | Merged | Asset Library — complete |
 | `feature/sprint-5-compass` | Merged | Creative Compass — complete |
 | `feature/sprint-10-core` | Merged | Core Panel — complete |
-| `feature/sprint-11-map` | Pending merge | Production Map Panel — complete |
+| `feature/sprint-11-map` | Merged | Production Map Panel — complete |
+| `feature/sprint-12-ai-chat` | Pending merge | AI Chat Panel — complete |
 
 ---
 
@@ -68,6 +69,26 @@ Workspace shell fully implemented.
 - Four panel shell pages + components (Core, Compass, Map, Assets)
 - `app/actions/projects.ts` — `getProject(id)` added
 - `database/migrations/003_project_core.sql` — `project_core` table, unique index, RLS join-through
+
+### Sprint 12 — AI Chat Panel — `a11a86b`
+In-project AI assistant panel. Users send messages and receive AI responses grounded in the complete project context (core, compass, production map, assets). Conversations persisted to the database. `008_conversations.sql` applied to Supabase 2026-06-07.
+
+**Deliverables:**
+- `database/migrations/008_conversations.sql` — `conversations` table (`UNIQUE(project_id)` — one per project, concurrent-creation race guarded at DB level); `messages` table (`project_id` denormalized for single-hop RLS); RLS Pattern B on both tables
+- `apps/web/app/actions/chat.ts` — `getOrCreateConversation` (lifecycle contract: sole entry point for all conversation access; handles 23505 race via re-SELECT) and `sendMessage` (takes `{ projectId, content }` only — no `conversationId` from client; AI-first atomicity: no DB writes on AI failure; orphan cleanup on assistant INSERT failure; calls `getOrCreateConversation` internally)
+- `packages/context-engine/src/types.ts` — `BlockContext` interface; `blocks: BlockContext[]` added to `ProjectContext`
+- `packages/context-engine/src/assemble.ts` — `blocks` query added to `Promise.all`; `sort_order → order` mapping consistent with Sprint 11 `rowToBlock` pattern
+- `packages/context-engine/src/serialize.ts` — `buildBlocksBlock`; trim priority updated: assets → blocks → compass → core (core never trimmed)
+- `packages/assembly-engine/src/build.ts` — `filterContextByMode` strips `blocks: []` from `compass_only`, `core_only`, `bare`; `blocks` segment added to `AssemblyRequest.segments[]`; `packages/assembly-engine/tsconfig.json` — `"types": ["node"]` added (resolved pre-existing masked typecheck error)
+- `apps/web/components/chat/chat-view.tsx` — async Server Component; calls `getOrCreateConversation(projectId)`; passes `initialMessages` to `ChatInterface`
+- `apps/web/components/chat/chat-interface.tsx` — Client Component; `useOptimistic` for immediate user message display; `useTransition` for `sendMessage`; `isPending` "Thinking…" pulse; Enter-to-send; 2,000 char limit with counter; auto-scroll to latest message
+- `apps/web/components/chat/message-list.tsx` — maps `Message[]` → `MessageBubble`; shows `ChatEmptyState` when empty
+- `apps/web/components/chat/message-bubble.tsx` — role-aware layout (user: right/primary; assistant: left/muted); `whitespace-pre-wrap`
+- `apps/web/components/chat/chat-empty-state.tsx` — presentational
+- `apps/web/components/workspace/panels/ai-panel.tsx` — panel wrapper
+- `apps/web/app/(app)/workspace/[projectId]/ai/page.tsx` — dynamic `generateMetadata` with `getProject`; async `AiPage` awaiting `params`
+- `apps/web/components/workspace/workspace-sidebar.tsx` — AI nav item (`Sparkles` icon, `segment: 'ai'`) — workspace now has 5 panel links
+- `@studioos/shared` frozen — `Conversation`/`Message` types consumed as-is; no changes
 
 ### Sprint 11 — Production Map Panel — `616de9e`
 Second functional workspace panel. Full CRUD block management with inline edit, reorder, and delete. `007_blocks.sql` applied to Supabase 2026-06-07.
@@ -217,6 +238,7 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/005_compass_sections.sql` | Applied | `compass_sections`, sort_order, UNIQUE(project_id, sort_order), EXISTS RLS |
 | `database/migrations/006_artifact_dependencies.sql` | Applied | `artifact_dependencies`, 6-field unique index, trigger-based orphan cleanup, EXISTS RLS |
 | `database/migrations/007_blocks.sql` | Applied 2026-06-07 | `blocks` table, `project_id`/`parent_id` indexes, RLS Pattern B |
+| `database/migrations/008_conversations.sql` | Applied 2026-06-07 | `conversations` (UNIQUE project_id) + `messages` tables, RLS Pattern B |
 
 ---
 
@@ -242,9 +264,9 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 11 Production Map Panel complete on `feature/sprint-11-map` @ `616de9e`. Database migration `007_blocks.sql` applied to Supabase 2026-06-07. Lint PASS, typecheck PASS, build PASS. Pending merge to `develop`.
+Sprint 12 AI Chat Panel complete on `feature/sprint-12-ai-chat` @ `a11a86b`. Database migrations `007_blocks.sql` and `008_conversations.sql` both applied to Supabase 2026-06-07. Lint PASS, typecheck PASS, build PASS. Pending merge to `develop`.
 
 ## Next Sprint
 
-**Sprint 12 — TBD**
-Sprint 11 merge to `develop` required before Sprint 12 planning begins.
+**Sprint 13 — TBD**
+Sprint 12 merge to `develop` required before Sprint 13 planning begins.
