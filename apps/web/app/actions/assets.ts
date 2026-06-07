@@ -29,21 +29,36 @@ export async function getAssets(input: {
 
   const assets = data as Asset[]
 
-  const withSignedUrls = await Promise.all(
-    assets.map(async (asset) => {
-      if (asset.source_type !== 'uploaded' || !asset.storage_path) {
-        return { ...asset, signedUrl: null }
+  // Collect paths for uploaded assets only — external/other assets never need a signed URL.
+  const uploadedPaths = assets
+    .filter((a) => a.source_type === 'uploaded' && a.storage_path !== null)
+    .map((a) => a.storage_path as string)
+
+  // One bulk call replaces N individual createSignedUrl calls.
+  // Results are keyed by path because the response order is not guaranteed to
+  // match the input order.
+  const signedUrlMap = new Map<string, string>()
+  if (uploadedPaths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from('assets')
+      .createSignedUrls(uploadedPaths, 3600)
+
+    if (signed) {
+      for (const entry of signed) {
+        if (entry.path && entry.signedUrl && !entry.error) {
+          signedUrlMap.set(entry.path, entry.signedUrl)
+        }
       }
+    }
+  }
 
-      const { data: signed } = await supabase.storage
-        .from('assets')
-        .createSignedUrl(asset.storage_path, 3600)
-
-      return { ...asset, signedUrl: signed?.signedUrl ?? null }
-    })
-  )
-
-  return withSignedUrls
+  return assets.map((asset) => ({
+    ...asset,
+    signedUrl:
+      asset.source_type === 'uploaded' && asset.storage_path
+        ? (signedUrlMap.get(asset.storage_path) ?? null)
+        : null,
+  }))
 }
 
 export async function uploadAsset(input: {

@@ -16,6 +16,7 @@ export type {
   Asset,
   AssetType,
   AssetSource,
+  AssetSourceType,
   KnowledgeEntry,
   KnowledgeType,
   Conversation,

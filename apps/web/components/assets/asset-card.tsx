@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { FileText, Music, Video, File, Link, Image } from 'lucide-react'
+import { FileText, Music, Video, File, Link, Image, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { deleteAsset } from '@/app/actions/assets'
@@ -64,8 +64,18 @@ export function AssetCard({ asset, projectId }: AssetCardProps) {
           </Badge>
         </div>
 
-        {asset.source_type === 'external' && (
-          <span className="text-xs text-muted-foreground">External reference</span>
+        {asset.external_url && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <ExternalLink className="h-3 w-3 shrink-0" />
+            <a
+              href={asset.external_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="truncate underline-offset-2 hover:underline"
+            >
+              {asset.external_url}
+            </a>
+          </div>
         )}
 
         {asset.notes && (

@@ -14,6 +14,7 @@ export interface Project {
   title: string
   format: ProjectFormat
   status: ProjectStatus
+  archived_at: string | null
   created_at: string
   updated_at: string
 }
