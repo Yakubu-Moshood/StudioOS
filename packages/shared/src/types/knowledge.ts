@@ -8,6 +8,7 @@ export interface KnowledgeEntry {
   content: string | null
   type: KnowledgeType
   source_url: string | null
+  source_title: string | null
   created_at: string
   updated_at: string
 }

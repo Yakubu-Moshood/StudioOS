@@ -57,6 +57,20 @@ function buildBlocksBlock(blocks: ProjectContext['blocks']): string {
   return lines.join('\n')
 }
 
+function buildKnowledgeBlock(entries: ProjectContext['knowledge']): string {
+  if (entries.length === 0) return ''
+
+  const lines: string[] = ['## Knowledge Base']
+  for (const entry of entries) {
+    let header = `- [${entry.type}] ${entry.title}`
+    if (entry.source_title) header += ` — "${entry.source_title}"`
+    if (entry.source_url) header += ` (${entry.source_url})`
+    lines.push(header)
+    if (entry.content) lines.push(`  ${entry.content.slice(0, 300)}`)
+  }
+  return lines.join('\n')
+}
+
 export function serializeContext(
   ctx: ProjectContext,
   options?: SerializeOptions
@@ -66,26 +80,32 @@ export function serializeContext(
   const coreBlock = buildCoreBlock(ctx)
   const coreTokens = estimateTokens(coreBlock)
 
-  // Trim priority (lowest to highest): assets → blocks → compass; core never trimmed
+  // Trim priority (lowest to highest): assets → knowledge → compass → blocks; core never trimmed
   let compassEntries = [...ctx.compass]
   let blockEntries = [...ctx.blocks]
   let assetEntries = [...ctx.assets]
+  let knowledgeEntries = [...ctx.knowledge]
 
   let compassBlock = buildCompassBlock(compassEntries)
   let blocksBlock = buildBlocksBlock(blockEntries)
   let assetsBlock = buildAssetsBlock(assetEntries)
+  let knowledgeBlock = buildKnowledgeBlock(knowledgeEntries)
 
   const total = () =>
-    coreTokens + estimateTokens(compassBlock) + estimateTokens(blocksBlock) + estimateTokens(assetsBlock)
+    coreTokens +
+    estimateTokens(compassBlock) +
+    estimateTokens(blocksBlock) +
+    estimateTokens(assetsBlock) +
+    estimateTokens(knowledgeBlock)
 
   while (total() > budget && assetEntries.length > 0) {
     assetEntries = assetEntries.slice(0, -1)
     assetsBlock = buildAssetsBlock(assetEntries)
   }
 
-  while (total() > budget && blockEntries.length > 0) {
-    blockEntries = blockEntries.slice(0, -1)
-    blocksBlock = buildBlocksBlock(blockEntries)
+  while (total() > budget && knowledgeEntries.length > 0) {
+    knowledgeEntries = knowledgeEntries.slice(0, -1)
+    knowledgeBlock = buildKnowledgeBlock(knowledgeEntries)
   }
 
   while (total() > budget && compassEntries.length > 0) {
@@ -93,9 +113,15 @@ export function serializeContext(
     compassBlock = buildCompassBlock(compassEntries)
   }
 
+  while (total() > budget && blockEntries.length > 0) {
+    blockEntries = blockEntries.slice(0, -1)
+    blocksBlock = buildBlocksBlock(blockEntries)
+  }
+
   const parts: string[] = [coreBlock]
   if (compassBlock) parts.push(compassBlock)
   if (blocksBlock) parts.push(blocksBlock)
+  if (knowledgeBlock) parts.push(knowledgeBlock)
   if (assetsBlock) parts.push(assetsBlock)
 
   const text = parts.join('\n\n')

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Asset, CompassSection, ProjectCore } from '@studioos/shared'
-import type { AssetContext, BlockContext, CompassEntryContext, CoreContext, ProjectContext } from './types'
+import type { AssetContext, BlockContext, CompassEntryContext, CoreContext, KnowledgeContext, ProjectContext } from './types'
 
 const INCLUDED_ASSET_TYPES = ['image', 'document']
 
@@ -8,7 +8,7 @@ export async function assembleContext(
   client: SupabaseClient,
   projectId: string
 ): Promise<ProjectContext> {
-  const [projectResult, coreResult, compassResult, assetsResult, blocksResult] = await Promise.all([
+  const [projectResult, coreResult, compassResult, assetsResult, blocksResult, knowledgeResult] = await Promise.all([
     client
       .from('projects')
       .select('id, title, format, status')
@@ -34,6 +34,11 @@ export async function assembleContext(
       .select('id, type, title, content, status, sort_order')
       .eq('project_id', projectId)
       .order('sort_order', { ascending: true }),
+    client
+      .from('knowledge_entries')
+      .select('id, title, content, type, source_url, source_title')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true }),
   ])
 
   // Graceful fallback — RLS returns null/empty rather than throwing on auth failure
@@ -50,6 +55,10 @@ export async function assembleContext(
   const rawBlocks = (blocksResult.data ?? []) as Array<{
     id: string; type: string; title: string; content: string | null
     status: string; sort_order: number
+  }>
+  const rawKnowledge = (knowledgeResult.data ?? []) as Array<{
+    id: string; title: string; content: string | null
+    type: string; source_url: string | null; source_title: string | null
   }>
 
   const coreContext: CoreContext | null = coreData
@@ -76,6 +85,15 @@ export async function assembleContext(
     content: b.content,
     status: b.status,
     order: b.sort_order,
+  }))
+
+  const knowledgeContexts: KnowledgeContext[] = rawKnowledge.map((k) => ({
+    id: k.id,
+    title: k.title,
+    content: k.content,
+    type: k.type,
+    source_url: k.source_url,
+    source_title: k.source_title,
   }))
 
   const assetContexts: AssetContext[] = await Promise.all(
@@ -110,5 +128,6 @@ export async function assembleContext(
     compass: compassEntries,
     assets: assetContexts,
     blocks: blockContexts,
+    knowledge: knowledgeContexts,
   }
 }

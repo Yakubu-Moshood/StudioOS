@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useSelectedLayoutSegment } from 'next/navigation'
-import { Layers, Compass, GitBranch, FolderOpen, Sparkles } from 'lucide-react'
+import { Layers, Compass, GitBranch, FolderOpen, Sparkles, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -10,7 +10,8 @@ const NAV_ITEMS = [
   { segment: 'compass', label: 'Compass', icon: Compass },
   { segment: 'map',     label: 'Map',     icon: GitBranch },
   { segment: 'assets',  label: 'Assets',  icon: FolderOpen },
-  { segment: 'ai',      label: 'AI',      icon: Sparkles },
+  { segment: 'ai',        label: 'AI',        icon: Sparkles  },
+  { segment: 'knowledge', label: 'Knowledge', icon: BookOpen  },
 ] as const
 
 interface WorkspaceSidebarProps {
