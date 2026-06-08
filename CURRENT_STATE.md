@@ -29,7 +29,7 @@
 ## Sprint History
 
 ### Sprint 14 — Project Management — `9ff76ea`
-Full project lifecycle management. Archive, restore, rename, and delete projects from the dashboard. Archived projects remain fully accessible in the workspace with a restoration banner. Bundles three carry-forward cleanup items from Asset Library review (AssetSourceType export, external_url link rendering, bulk signed URLs). `010_project_archiving.sql` and `011_updated_at_triggers.sql` pending application to Supabase.
+Full project lifecycle management. Archive, restore, rename, and delete projects from the dashboard. Archived projects remain fully accessible in the workspace with a restoration banner. Bundles three carry-forward cleanup items from Asset Library review (AssetSourceType export, external_url link rendering, bulk signed URLs). `010_project_archiving.sql` and `011_updated_at_triggers.sql` applied to Supabase 2026-06-08.
 
 **Deliverables:**
 - `database/migrations/010_project_archiving.sql` — `ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS archived_at timestamptz DEFAULT NULL`; idempotent; no index (per CTO decision); no RLS changes required
@@ -243,8 +243,8 @@ Asset Library fully implemented. Database bootstrap complete.
 | `database/migrations/007_blocks.sql` | Applied 2026-06-07 | `blocks` table, `project_id`/`parent_id` indexes, RLS Pattern B |
 | `database/migrations/008_conversations.sql` | Applied 2026-06-07 | `conversations` (UNIQUE project_id) + `messages` tables, RLS Pattern B |
 | `database/migrations/009_knowledge.sql` | Applied 2026-06-07 | `knowledge_entries` table, Pattern B RLS, `source_title`/`source_url`, attribution `user_id` |
-| `database/migrations/010_project_archiving.sql` | Pending | `projects.archived_at timestamptz DEFAULT NULL` — apply before Sprint 14 deploy |
-| `database/migrations/011_updated_at_triggers.sql` | Pending | `set_updated_at()` BEFORE UPDATE trigger on 5 tables — apply before Sprint 14 deploy |
+| `database/migrations/010_project_archiving.sql` | Applied 2026-06-08 | `projects.archived_at timestamptz DEFAULT NULL` |
+| `database/migrations/011_updated_at_triggers.sql` | Applied 2026-06-08 | `set_updated_at()` BEFORE UPDATE trigger on 5 tables |
 
 ---
 
@@ -270,7 +270,7 @@ Asset Library fully implemented. Database bootstrap complete.
 
 ## Development Status
 
-Sprint 14 Project Management complete on `feature/sprint-14-project-management`. Typecheck PASS, lint PASS (7/7). Migrations `010_project_archiving.sql` and `011_updated_at_triggers.sql` committed — pending application to Supabase before production deploy. Pending merge to `develop`.
+Sprint 14 Project Management complete and fully deployed. Merged to `develop`, pushed to `origin/develop` (merge commit `0c42a2a`). Migrations `010_project_archiving.sql` and `011_updated_at_triggers.sql` applied to Supabase 2026-06-08. Typecheck PASS, lint PASS (7/7).
 
 ## Next Sprint
 
