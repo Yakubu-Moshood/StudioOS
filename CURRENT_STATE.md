@@ -272,13 +272,28 @@ Asset Library fully implemented. Database bootstrap complete.
 
 Sprint 14 Project Management complete and fully deployed. Merged to `develop`, pushed to `origin/develop` (merge commit `0c42a2a`). Migrations `010_project_archiving.sql` and `011_updated_at_triggers.sql` applied to Supabase 2026-06-08. Typecheck PASS, lint PASS (7/7).
 
+Sprint 15 Architecture Review completed 2026-06-08. Export Layer selected as recommended Sprint 15 scope. Sprint 15 Handoff Summary created 2026-06-08. Sprint 15 implementation not yet approved — awaiting CTO authorization.
+
 ## Next Sprint
 
-**Sprint 15 — User Profile & Account**
+**Sprint 15 — Export Layer**
 
-Top candidates:
+Architecture review completed 2026-06-08. Handoff Summary created 2026-06-08. Implementation not yet approved.
 
-1. **User Profile Panel** — View/edit display name, avatar, account settings. Also resolves the known `UserProfile.user_id` vs DB schema field mismatch that has been deferred since Sprint 1.
-2. **Project Format Edit** — Users currently cannot change a project's format after creation. A project settings surface (rename + format change) would complete the project management story started in Sprint 14.
-3. **Dashboard Enhancements** — Search/filter projects by title, sort by last updated, project thumbnails or color labels. Low DB risk; high UX value as project count grows.
-4. **Storage Hardening** — Resolve two deferred carry-forward items: `uploadAsset` storage orphan cleanup on DB failure; `source_type` exclusivity CHECK constraint on `assets` table.
+**Recommended scope:** Markdown Project Bible export only. PDF and DOCX deferred to Sprint 16.
+
+**Key decisions from architecture review:**
+- Delivery via Next.js Route Handler (`app/api/export/[projectId]/route.ts`) — Server Actions cannot return file responses
+- New `export_bible` value added to `AssemblyMode` in `packages/assembly-engine`
+- Existing Context Engine and Assembly Engine used without modification
+- No new database tables in Sprint 15
+- Streaming deferred — blocking loading state acceptable for MVP
+
+**Decisions pending CTO input before implementation:**
+- `maxTokens` ceiling for export generation (recommended 4,000–6,000)
+- Export button placement (workspace header vs dedicated `/export` panel)
+- Assembly mode approach (`export_bible` mode vs `full_context` with custom system prompt)
+
+**Candidates reviewed and deferred:**
+- AI Memory — explicit user-created memory viable; AI-inferred memory (embeddings/pgvector) deferred
+- Publishing Layer — prerequisite on Export Layer; deferred to Sprint 16+
