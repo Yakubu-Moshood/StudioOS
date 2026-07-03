@@ -117,9 +117,6 @@ export async function deleteProject(input: {
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated.' }
 
-  // Verify existence and ownership before deleting.
-  // The .eq('owner_id') guard means a non-owner receives the same
-  // "not found" response as a genuinely missing project — no ownership leakage.
   const { data: project, error: fetchError } = await supabase
     .from('projects')
     .select('id')
@@ -149,10 +146,7 @@ export async function createProject(input: {
 }): Promise<ActionResult<Project>> {
   const title = input.title.trim()
 
-  if (!title) {
-    return { success: false, error: 'Title is required.' }
-  }
-
+  if (!title) return { success: false, error: 'Title is required.' }
   if (!(PROJECT_FORMATS as readonly string[]).includes(input.format)) {
     return { success: false, error: 'Invalid project format.' }
   }
@@ -162,19 +156,50 @@ export async function createProject(input: {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    return { success: false, error: 'Not authenticated.' }
+  if (!user) return { success: false, error: 'Not authenticated.' }
+
+  let { data: organisation } = await supabase
+    .from('organisations')
+    .select('id')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  if (!organisation) {
+    const { data: createdOrganisation, error: organisationError } = await supabase
+      .from('organisations')
+      .insert({ name: 'My Organisation', owner_id: user.id })
+      .select('id')
+      .single()
+
+    if (organisationError || !createdOrganisation) {
+      return { success: false, error: 'Failed to prepare project ownership.' }
+    }
+
+    organisation = createdOrganisation
+
+    const { error: membershipError } = await supabase.from('organisation_members').insert({
+      organisation_id: organisation.id,
+      user_id: user.id,
+      role: 'owner',
+    })
+
+    if (membershipError) {
+      return { success: false, error: 'Failed to prepare project membership.' }
+    }
   }
 
   const { data, error } = await supabase
     .from('projects')
-    .insert({ title, format: input.format, owner_id: user.id })
+    .insert({
+      title,
+      format: input.format,
+      owner_id: user.id,
+      organisation_id: organisation.id,
+    })
     .select()
     .single()
 
-  if (error) {
-    return { success: false, error: 'Failed to create project.' }
-  }
+  if (error) return { success: false, error: 'Failed to create project.' }
 
   revalidatePath('/dashboard')
   return { success: true, data: data as Project }
