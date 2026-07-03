@@ -15,7 +15,9 @@ DECLARE
   next_version integer;
   created_version public.artifact_versions;
   brief_stage_id uuid;
+  research_stage_id uuid;
   brief_task_id uuid;
+  research_task_id uuid;
 BEGIN
   IF brief_content IS NULL OR brief_content = '{}'::jsonb THEN
     RAISE EXCEPTION 'Brief content is required';
@@ -25,19 +27,34 @@ BEGIN
   FROM public.production_stages
   WHERE production_id = target_production_id AND stage_key = 'brief';
 
-  IF brief_stage_id IS NULL THEN
-    RAISE EXCEPTION 'Brief stage not found';
+  SELECT id INTO research_stage_id
+  FROM public.production_stages
+  WHERE production_id = target_production_id AND stage_key = 'research';
+
+  IF brief_stage_id IS NULL OR research_stage_id IS NULL THEN
+    RAISE EXCEPTION 'Required workflow stages not found';
   END IF;
 
   SELECT id INTO brief_task_id
   FROM public.production_tasks
   WHERE stage_id = brief_stage_id AND task_key = 'create_brief';
 
+  SELECT id INTO research_task_id
+  FROM public.production_tasks
+  WHERE stage_id = research_stage_id AND task_key = 'generate_research';
+
   INSERT INTO public.artifacts (production_id, artifact_type, title)
   VALUES (target_production_id, 'brief', 'Production Brief')
   ON CONFLICT (production_id, artifact_type)
   DO UPDATE SET title = EXCLUDED.title
   RETURNING * INTO brief_artifact;
+
+  -- Serialise version allocation per Artifact so concurrent saves cannot claim
+  -- the same version number.
+  PERFORM 1
+  FROM public.artifacts
+  WHERE id = brief_artifact.id
+  FOR UPDATE;
 
   SELECT COALESCE(MAX(version_number), 0) + 1
   INTO next_version
@@ -58,6 +75,16 @@ BEGIN
   UPDATE public.production_tasks
   SET status = 'awaiting_approval'
   WHERE id = brief_task_id;
+
+  -- A new authoritative Brief version invalidates the downstream readiness
+  -- granted by an older approved Brief version.
+  UPDATE public.production_stages
+  SET status = 'pending'
+  WHERE id = research_stage_id;
+
+  UPDATE public.production_tasks
+  SET status = 'pending'
+  WHERE id = research_task_id;
 
   UPDATE public.productions
   SET state = 'awaiting_approval'
@@ -127,6 +154,7 @@ BEGIN
     RAISE EXCEPTION 'Only the latest Brief version may be decided';
   END IF;
 
+  -- Decisions are immutable. A changed outcome requires a new Artifact Version.
   INSERT INTO public.approvals (
     artifact_version_id, decision, comment, decided_by
   ) VALUES (
@@ -135,12 +163,6 @@ BEGIN
     NULLIF(trim(decision_comment), ''),
     auth.uid()
   )
-  ON CONFLICT (artifact_version_id)
-  DO UPDATE SET
-    decision = EXCLUDED.decision,
-    comment = EXCLUDED.comment,
-    decided_by = EXCLUDED.decided_by,
-    decided_at = now()
   RETURNING * INTO created_approval;
 
   SELECT id INTO brief_stage_id
