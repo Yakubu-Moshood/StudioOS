@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getProductionWorkflow } from '@/app/actions/productions'
+import { getBriefVersions } from '@/app/actions/briefs'
+import { BriefPanel } from '@/components/productions/brief-panel'
 import { Badge } from '@/components/ui/badge'
 
 const STAGE_LABELS = {
@@ -15,7 +17,10 @@ interface ProductionPageProps {
 
 export default async function ProductionPage({ params }: ProductionPageProps) {
   const { projectId, productionId } = await params
-  const workflow = await getProductionWorkflow(projectId, productionId)
+  const [workflow, briefVersions] = await Promise.all([
+    getProductionWorkflow(projectId, productionId),
+    getBriefVersions(productionId),
+  ])
 
   if (!workflow) notFound()
 
@@ -29,26 +34,25 @@ export default async function ProductionPage({ params }: ProductionPageProps) {
         <Badge variant="secondary">{workflow.production.state.replace('_', ' ')}</Badge>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 md:grid-cols-4">
         {workflow.stages.map((stage) => (
-          <section key={stage.id} className="rounded-lg border p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full border text-sm font-medium">
-                  {stage.position}
-                </span>
-                <h2 className="font-medium">{STAGE_LABELS[stage.stage_key]}</h2>
+          <section key={stage.id} className="rounded-lg border p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-xs text-muted-foreground">Stage {stage.position}</span>
+                <h2 className="mt-1 font-medium">{STAGE_LABELS[stage.stage_key]}</h2>
               </div>
               <Badge variant={stage.status === 'ready' ? 'default' : 'outline'}>
                 {stage.status.replace('_', ' ')}
               </Badge>
             </div>
-
             <div className="mt-4 grid gap-2">
               {stage.tasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
-                  <span>{task.title}</span>
-                  <span className="text-xs text-muted-foreground">{task.status.replace('_', ' ')}</span>
+                <div key={task.id} className="rounded-md bg-muted/40 px-3 py-2 text-sm">
+                  <div>{task.title}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {task.status.replace('_', ' ')}
+                  </div>
                 </div>
               ))}
             </div>
@@ -56,8 +60,14 @@ export default async function ProductionPage({ params }: ProductionPageProps) {
         ))}
       </div>
 
+      <BriefPanel
+        projectId={projectId}
+        productionId={productionId}
+        versions={briefVersions}
+      />
+
       <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-        The workflow foundation is active. Brief editing and artifact-version approval are the next implementation gate.
+        Research remains locked until the latest Brief version is explicitly approved.
       </div>
     </div>
   )
