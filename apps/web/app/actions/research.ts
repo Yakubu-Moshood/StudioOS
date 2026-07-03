@@ -17,30 +17,19 @@ export async function getResearchVersions(productionId: string): Promise<Researc
   if (!user) return []
 
   const { data: artifact, error: artifactError } = await supabase
-    .from('artifacts')
-    .select('id')
-    .eq('production_id', productionId)
-    .eq('artifact_type', 'research')
-    .maybeSingle()
-
+    .from('artifacts').select('id').eq('production_id', productionId).eq('artifact_type', 'research').maybeSingle()
   if (artifactError) throw new Error('Failed to load Research artifact.')
   if (!artifact) return []
 
   const { data, error } = await supabase
-    .from('artifact_versions')
-    .select('*, approvals(*)')
-    .eq('artifact_id', artifact.id)
+    .from('artifact_versions').select('*, approvals(*)').eq('artifact_id', artifact.id)
     .order('version_number', { ascending: false })
-
   if (error) throw new Error('Failed to load Research versions.')
 
   return (data ?? []).map((row) => {
     const { approvals, ...version } = row
     const approval = Array.isArray(approvals) ? approvals[0] : approvals
-    return {
-      ...(version as ArtifactVersion),
-      approval: (approval as Approval | null | undefined) ?? null,
-    }
+    return { ...(version as ArtifactVersion), approval: (approval as Approval | null | undefined) ?? null }
   })
 }
 
@@ -56,43 +45,54 @@ export async function generateResearch(input: {
   const { data: runData, error: startError } = await supabase.rpc('start_research_run', {
     target_production_id: input.productionId,
   })
-
   if (startError || !runData) {
-    return { success: false, error: 'Research cannot start. Confirm the Brief is approved.' }
+    return { success: false, error: 'Strategic Discovery cannot start. Confirm Client Discovery is approved.' }
   }
 
   const run = runData as Run
 
   try {
     const briefVersionId = String(run.input.brief_version_id ?? '')
-    const { data: briefVersion, error: briefError } = await supabase
-      .from('artifact_versions')
-      .select('content')
-      .eq('id', briefVersionId)
-      .single()
+    const [{ data: briefVersion, error: briefError }, { data: production, error: productionError }] = await Promise.all([
+      supabase.from('artifact_versions').select('content').eq('id', briefVersionId).single(),
+      supabase.from('productions').select('production_type').eq('id', input.productionId).single(),
+    ])
 
     if (briefError || !briefVersion) throw new Error('Approved Brief could not be loaded.')
+    if (productionError || !production) throw new Error('Production could not be loaded.')
 
-    const briefBody = String((briefVersion.content as Record<string, unknown>).body ?? '')
+    const briefContent = briefVersion.content as Record<string, unknown>
     const revisionInstruction = input.revisionInstruction?.trim()
+    const isAdvertising = production.production_type === 'advertising_campaign'
+
+    const systemPrompt = isAdvertising
+      ? 'You are the Strategic Discovery stage of an advertising campaign workflow. Analyse the approved Client Discovery and produce an evidence-led strategy document. Use exactly these six markdown headings: Audience Insight, Competitor Analysis, Cultural and Market Context, Brand Opportunity, Campaign Positioning, Strategic Proposition. Keep each section specific, practical and directly useful for creative development. Do not write campaign concepts or scripts.'
+      : 'You are the Research stage of a creative production workflow. Produce factual, structured research that directly supports the approved production brief. Clearly separate verified facts, useful context, open questions, risks, and suggested source directions. Do not write the script.'
+
+    const sourceContent = isAdvertising
+      ? JSON.stringify(briefContent, null, 2)
+      : String(briefContent.body ?? '')
 
     const output = await generate({
-      systemPrompt:
-        'You are the Research stage of a creative production workflow. Produce factual, structured research that directly supports the approved production brief. Clearly separate verified facts, useful context, open questions, risks, and suggested source directions. Do not write the script.',
+      systemPrompt,
       prompt: [
-        'APPROVED PRODUCTION BRIEF:',
-        briefBody,
+        isAdvertising ? 'APPROVED CLIENT DISCOVERY:' : 'APPROVED PRODUCTION BRIEF:',
+        sourceContent,
         revisionInstruction ? `REVISION INSTRUCTION:\n${revisionInstruction}` : '',
-        'Return a production-ready research document in clear markdown.',
-      ]
-        .filter(Boolean)
-        .join('\n\n'),
+        isAdvertising
+          ? 'Return a concise, production-ready Strategic Discovery document in markdown.'
+          : 'Return a production-ready research document in clear markdown.',
+      ].filter(Boolean).join('\n\n'),
       maxTokens: 4000,
     })
 
+    const researchContent = isAdvertising
+      ? { type: 'advertising_strategic_discovery', body: output.text }
+      : { body: output.text }
+
     const { data: version, error: completeError } = await supabase.rpc('complete_research_run', {
       target_run_id: run.id,
-      research_content: { body: output.text },
+      research_content: researchContent,
       provider_name: output.provider,
       model_name: output.model,
       token_metadata: {
@@ -108,13 +108,10 @@ export async function generateResearch(input: {
   } catch (error) {
     await supabase.rpc('fail_research_run', {
       target_run_id: run.id,
-      failure: {
-        message: error instanceof Error ? error.message : 'Research generation failed.',
-      },
+      failure: { message: error instanceof Error ? error.message : 'Research generation failed.' },
     })
-
     revalidatePath(`/workspace/${input.projectId}/productions/${input.productionId}`)
-    return { success: false, error: 'Research generation failed. The run was recorded and can be retried.' }
+    return { success: false, error: 'Strategic Discovery generation failed. The run was recorded and can be retried.' }
   }
 }
 
@@ -134,7 +131,6 @@ export async function decideResearchVersion(input: {
     approval_decision: input.decision,
     decision_comment: input.comment?.trim() || null,
   })
-
   if (error || !data) return { success: false, error: 'Failed to record Research decision.' }
 
   revalidatePath(`/workspace/${input.projectId}/productions/${input.productionId}`)
