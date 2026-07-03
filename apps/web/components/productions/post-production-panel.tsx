@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 
-export function PostProductionPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: PostProductionVersion[] }) {
+export function PostProductionPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: PostProductionVersion[]; activeRunId?: string | null }) {
   const latest = props.versions[0] ?? null
   const content = latest?.content as Record<string, unknown> | undefined
   const masterUrl = typeof content?.master_url === 'string' ? content.master_url : ''
   const decision = latest?.approval?.decision ?? null
-  const [runId, setRunId] = useState('')
+  const [runId, setRunId] = useState(props.activeRunId ?? '')
   const [provider, setProvider] = useState('manual')
   const [workflow, setWorkflow] = useState('')
   const [url, setUrl] = useState('')
@@ -94,7 +94,7 @@ export function PostProductionPanel(props: { projectId: string; productionId: st
       <div className="mt-4 space-y-3">
         {!runId ? <Button onClick={startRun} disabled={pending || !props.canStart}>{pending ? 'Starting…' : latest ? 'Start revision run' : 'Start Post-production'}</Button> : (
           <div className="grid gap-3">
-            <div className="text-sm text-muted-foreground">Active run: {runId}</div>
+            <div className="text-sm text-muted-foreground">Active run recovered: {runId}</div>
             <div className="grid gap-2 rounded-md bg-muted/40 p-4">
               {checks.map(([label, checked, setter]) => (
                 <label key={label} className="flex items-center gap-2 text-sm">
