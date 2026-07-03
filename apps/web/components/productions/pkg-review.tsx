@@ -21,7 +21,10 @@ export function PkgReview(props: {
         artifactVersionId: props.version.id,
         decision,
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       toast.success(decision === 'approved' ? 'Production completed.' : 'Revision requested.')
     })
   }
