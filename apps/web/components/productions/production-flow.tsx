@@ -83,9 +83,9 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
           <AssetCreationPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_asset_creation')} versions={assetCreation} />
           <SceneIntelligencePanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_scene_intelligence')} versions={sceneIntelligence} />
           <AiGenerationPackagePanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_ai_generation_package')} versions={aiGenerationPackage} />
-          <VideoGenerationPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_video_generation')} versions={generatedVideos} activeRunId={activeVideoRun?.id} />
-          <PostProductionPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_post_production')} versions={postProductionMasters} activeRunId={activePostProductionRun?.id} />
-          <DeliveryPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_delivery')} versions={deliveries} activeRunId={activeDeliveryRun?.id} />
+          <VideoGenerationPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_video_generation')} versions={generatedVideos} activeRunId={activeVideoRun?.id ?? null} />
+          <PostProductionPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_post_production')} versions={postProductionMasters} activeRunId={activePostProductionRun?.id ?? null} />
+          <DeliveryPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_delivery')} versions={deliveries} activeRunId={activeDeliveryRun?.id ?? null} />
           <CampaignPackagePanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={campaignPackages} />
         </>
       ) : (
