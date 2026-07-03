@@ -30,7 +30,10 @@ export function ScriptPanel(props: ScriptPanelProps) {
         productionId: props.productionId,
         revisionInstruction: instruction,
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       setInstruction('')
       toast.success(`Script version ${result.data.version_number} generated.`)
     })
@@ -46,7 +49,10 @@ export function ScriptPanel(props: ScriptPanelProps) {
         decision: nextDecision,
         comment,
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       setComment('')
       toast.success(nextDecision === 'approved' ? 'Script approved.' : 'Revision requested.')
     })
