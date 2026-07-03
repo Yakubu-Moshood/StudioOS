@@ -2,6 +2,7 @@ import { getBriefVersions } from '@/app/actions/briefs'
 import { getResearchVersions } from '@/app/actions/research'
 import { getScriptVersions } from '@/app/actions/scripts'
 import { getProductionPackageVersions } from '@/app/actions/production-packages'
+import { getCampaignPackageVersions } from '@/app/actions/campaign-production-package'
 import { getCreativeStageVersions } from '@/app/actions/creative-stages'
 import { getVisualDevelopmentVersions } from '@/app/actions/visual-development'
 import { getStoryboardVersions } from '@/app/actions/storyboard'
@@ -28,12 +29,13 @@ import { AiGenerationPackagePanel } from './ai-generation-package-panel'
 import { VideoGenerationPanel } from './video-generation-panel'
 import { PostProductionPanel } from './post-production-panel'
 import { DeliveryPanel } from './delivery-panel'
+import { CampaignPackagePanel } from './campaign-package-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
 
 export async function ProductionFlow(props: { projectId: string; productionId: string; workflow: ProductionWorkflowView }) {
-  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages] = await Promise.all([
+  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages, campaignPackages] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
@@ -49,6 +51,7 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
     getPostProductionVersions(props.productionId),
     getDeliveryVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
+    getCampaignPackageVersions(props.productionId),
   ])
 
   const task = (key: string) => props.workflow.stages.flatMap((stage) => stage.tasks).find((item) => item.task_key === key)
@@ -79,10 +82,14 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
           <VideoGenerationPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_video_generation')} versions={generatedVideos} />
           <PostProductionPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_post_production')} versions={postProductionMasters} />
           <DeliveryPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_delivery')} versions={deliveries} />
+          <CampaignPackagePanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={campaignPackages} />
         </>
-      ) : null}
-      <PkgPanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={packages} />
-      {latestPackage && !latestPackage.approval ? <PkgReview projectId={props.projectId} productionId={props.productionId} version={latestPackage} /> : null}
+      ) : (
+        <>
+          <PkgPanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={packages} />
+          {latestPackage && !latestPackage.approval ? <PkgReview projectId={props.projectId} productionId={props.productionId} version={latestPackage} /> : null}
+        </>
+      )}
     </div>
   )
 }
