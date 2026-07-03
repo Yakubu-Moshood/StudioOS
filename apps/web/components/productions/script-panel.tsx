@@ -13,6 +13,7 @@ interface ScriptPanelProps {
   productionId: string
   canGenerate: boolean
   versions: ScriptVersionView[]
+  mode?: 'script' | 'advertising_script'
 }
 
 export function ScriptPanel(props: ScriptPanelProps) {
@@ -22,6 +23,7 @@ export function ScriptPanel(props: ScriptPanelProps) {
   const [instruction, setInstruction] = useState('')
   const [comment, setComment] = useState('')
   const [isPending, startTransition] = useTransition()
+  const advertising = props.mode === 'advertising_script'
 
   function handleGenerate() {
     startTransition(async () => {
@@ -35,7 +37,7 @@ export function ScriptPanel(props: ScriptPanelProps) {
         return
       }
       setInstruction('')
-      toast.success(`Script version ${result.data.version_number} generated.`)
+      toast.success(`${advertising ? 'Advertising Script' : 'Script'} version ${result.data.version_number} generated.`)
     })
   }
 
@@ -54,7 +56,9 @@ export function ScriptPanel(props: ScriptPanelProps) {
         return
       }
       setComment('')
-      toast.success(nextDecision === 'approved' ? 'Script approved.' : 'Revision requested.')
+      toast.success(nextDecision === 'approved'
+        ? `${advertising ? 'Advertising Script' : 'Script'} approved.`
+        : 'Revision requested.')
     })
   }
 
@@ -62,8 +66,12 @@ export function ScriptPanel(props: ScriptPanelProps) {
     <section className="rounded-lg border p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-medium">Script</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Requires approved Brief and Research versions.</p>
+          <h2 className="font-medium">{advertising ? 'Script Development' : 'Script'}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {advertising
+              ? 'Turns the approved campaign concept into a timed hero-film script and cutdown plan.'
+              : 'Requires approved Brief and Research versions.'}
+          </p>
         </div>
         {latest ? (
           <Badge variant="outline">
@@ -73,8 +81,14 @@ export function ScriptPanel(props: ScriptPanelProps) {
       </div>
 
       {body ? (
-        <div className="mt-4 max-h-[36rem] overflow-auto whitespace-pre-wrap rounded-md bg-muted/40 p-4 text-sm">
+        <div className="mt-4 max-h-[42rem] overflow-auto whitespace-pre-wrap rounded-md bg-muted/40 p-4 text-sm">
           {body}
+        </div>
+      ) : advertising ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {['Script Title', 'Duration and Format', 'Scene-by-Scene Script', 'Voiceover and Dialogue', 'On-Screen Text', 'End Frame and CTA', '15-Second Cutdown Notes'].map((item) => (
+            <div key={item} className="rounded-md bg-muted/40 p-3 text-sm text-muted-foreground">{item}</div>
+          ))}
         </div>
       ) : null}
 
@@ -82,12 +96,18 @@ export function ScriptPanel(props: ScriptPanelProps) {
         <Textarea
           value={instruction}
           onChange={(event) => setInstruction(event.target.value)}
-          placeholder="Optional Script focus or revision instruction"
+          placeholder={advertising ? 'Optional script direction or revision instruction' : 'Optional Script focus or revision instruction'}
           disabled={isPending || !props.canGenerate}
         />
         <div className="flex justify-end">
           <Button onClick={handleGenerate} disabled={isPending || !props.canGenerate}>
-            {isPending ? 'Generating…' : latest ? 'Generate new version' : 'Generate Script'}
+            {isPending
+              ? 'Generating…'
+              : latest
+                ? 'Generate new version'
+                : advertising
+                  ? 'Generate Advertising Script'
+                  : 'Generate Script'}
           </Button>
         </div>
       </div>
@@ -105,7 +125,7 @@ export function ScriptPanel(props: ScriptPanelProps) {
               Request revision
             </Button>
             <Button onClick={() => handleDecision('approved')} disabled={isPending}>
-              Approve Script
+              Approve {advertising ? 'Advertising Script' : 'Script'}
             </Button>
           </div>
         </div>
