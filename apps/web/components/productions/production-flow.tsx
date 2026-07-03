@@ -4,6 +4,7 @@ import { getScriptVersions } from '@/app/actions/scripts'
 import { getProductionPackageVersions } from '@/app/actions/production-packages'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
+import { ClientDiscoveryPanel } from './client-discovery-panel'
 import { ResearchPanel } from './research-panel'
 import { ScriptPanel } from './script-panel'
 import { PkgPanel } from './pkg-panel'
@@ -26,13 +27,16 @@ export async function ProductionFlow(props: {
     props.workflow.stages.flatMap((stage) => stage.tasks).find((item) => item.task_key === key)
   const ready = (key: string) => ['ready', 'failed'].includes(task(key)?.status ?? '')
   const latestPackage = packages[0] ?? null
+  const isAdvertising = props.workflow.production.production_type === 'advertising_campaign'
 
   return (
     <div className="grid gap-6">
-      {props.workflow.production.production_type === 'advertising_campaign' ? (
-        <WorkflowOverview stages={props.workflow.stages} />
-      ) : null}
-      <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
+      {isAdvertising ? <WorkflowOverview stages={props.workflow.stages} /> : null}
+      {isAdvertising ? (
+        <ClientDiscoveryPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
+      ) : (
+        <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
+      )}
       <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} />
       <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
       <PkgPanel
