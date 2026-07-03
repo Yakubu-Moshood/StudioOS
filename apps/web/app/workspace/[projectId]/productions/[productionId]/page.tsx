@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
 import { getProductionWorkflow } from '@/app/actions/productions'
 import { getBriefVersions } from '@/app/actions/briefs'
+import { getResearchVersions } from '@/app/actions/research'
 import { BriefPanel } from '@/components/productions/brief-panel'
+import { ResearchPanel } from '@/components/productions/research-panel'
 import { Badge } from '@/components/ui/badge'
 
 const STAGE_LABELS = {
@@ -17,12 +19,17 @@ interface ProductionPageProps {
 
 export default async function ProductionPage({ params }: ProductionPageProps) {
   const { projectId, productionId } = await params
-  const [workflow, briefVersions] = await Promise.all([
+  const [workflow, briefVersions, researchVersions] = await Promise.all([
     getProductionWorkflow(projectId, productionId),
     getBriefVersions(productionId),
+    getResearchVersions(productionId),
   ])
 
   if (!workflow) notFound()
+
+  const researchStage = workflow.stages.find((stage) => stage.stage_key === 'research')
+  const researchTask = researchStage?.tasks.find((task) => task.task_key === 'generate_research')
+  const canGenerateResearch = researchTask?.status === 'ready' || researchTask?.status === 'failed'
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
@@ -60,14 +67,17 @@ export default async function ProductionPage({ params }: ProductionPageProps) {
         ))}
       </div>
 
-      <BriefPanel
+      <BriefPanel projectId={projectId} productionId={productionId} versions={briefVersions} />
+
+      <ResearchPanel
         projectId={projectId}
         productionId={productionId}
-        versions={briefVersions}
+        canGenerate={canGenerateResearch}
+        versions={researchVersions}
       />
 
       <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-        Research remains locked until the latest Brief version is explicitly approved.
+        Script remains locked until the latest Research version is explicitly approved.
       </div>
     </div>
   )
