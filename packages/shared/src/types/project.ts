@@ -11,6 +11,7 @@ export type ProjectStatus = 'active' | 'archived'
 export interface Project {
   id: string
   owner_id: string
+  organisation_id: string | null
   title: string
   format: ProjectFormat
   status: ProjectStatus
