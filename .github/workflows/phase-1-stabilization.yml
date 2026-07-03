@@ -40,7 +40,17 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm typecheck
+        shell: bash
+        run: |
+          set +e
+          pnpm typecheck 2>&1 | tee typecheck.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Typecheck failure summary"
+            grep -E "error TS|ELIFECYCLE|command finished with error" typecheck.log | tail -n 120 || tail -n 120 typecheck.log
+            echo "::endgroup::"
+            exit "$status"
+          fi
 
       - name: Lint
         run: pnpm lint
