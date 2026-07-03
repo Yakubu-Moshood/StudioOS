@@ -27,6 +27,8 @@ export type {
   OrganisationRole,
   Production,
   ProductionState,
+  ProductionType,
+  WorkflowTemplateKey,
   WorkflowKey,
   ProductionStage,
   StageKey,
