@@ -32,11 +32,7 @@ function readInitial(version: BriefVersionView | null): FormState {
   return Object.fromEntries(fields.map(([key]) => [key, typeof discovery[key] === 'string' ? discovery[key] : ''])) as FormState
 }
 
-export function ClientDiscoveryPanel(props: {
-  projectId: string
-  productionId: string
-  versions: BriefVersionView[]
-}) {
+export function ClientDiscoveryPanel(props: { projectId: string; productionId: string; versions: BriefVersionView[] }) {
   const latest = props.versions[0] ?? null
   const [form, setForm] = useState<FormState>(() => readInitial(latest))
   const [comment, setComment] = useState('')
@@ -46,11 +42,6 @@ export function ClientDiscoveryPanel(props: {
   const complete = useMemo(() => fields.every(([key]) => form[key].trim()), [form])
 
   function save() {
-    const creativeBrief = `${form.business_problem}\n\nAudience: ${form.target_audience}\n\nMandatory message: ${form.mandatory_messaging}`
-    const projectCharter = `Deliverables: ${form.deliverables}\nTimeline: ${form.timeline}\nBudget: ${form.budget}`
-    const successMetrics = `Success will be measured against the business problem, audience response and delivery requirements defined in Client Discovery.`
-    const riskRegister = `Key risks to manage: brand compliance, budget, timeline, competitor similarity, mandatory-message accuracy and deliverable scope.`
-
     startTransition(async () => {
       const result = await createBriefVersion({
         projectId: props.projectId,
@@ -59,14 +50,17 @@ export function ClientDiscoveryPanel(props: {
           type: 'advertising_client_discovery',
           client_discovery: form,
           outputs: {
-            creative_brief: creativeBrief,
-            project_charter: projectCharter,
-            success_metrics: successMetrics,
-            risk_register: riskRegister,
+            creative_brief: `${form.business_problem}\n\nAudience: ${form.target_audience}\n\nMandatory message: ${form.mandatory_messaging}`,
+            project_charter: `Deliverables: ${form.deliverables}\nTimeline: ${form.timeline}\nBudget: ${form.budget}`,
+            success_metrics: 'Success will be measured against the business problem, audience response and delivery requirements defined in Client Discovery.',
+            risk_register: 'Key risks to manage: brand compliance, budget, timeline, competitor similarity, mandatory-message accuracy and deliverable scope.',
           },
         },
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       toast.success(`Client Discovery version ${result.data.version_number} saved.`)
     })
   }
@@ -81,13 +75,22 @@ export function ClientDiscoveryPanel(props: {
         decision: next,
         comment,
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       setComment('')
       toast.success(next === 'approved' ? 'Client Discovery approved.' : 'Revision requested.')
     })
   }
 
   const outputs = (latest?.content?.outputs ?? {}) as Record<string, unknown>
+  const outputCards = [
+    { title: 'Creative Brief', body: typeof outputs.creative_brief === 'string' ? outputs.creative_brief : 'Not generated yet.' },
+    { title: 'Project Charter', body: typeof outputs.project_charter === 'string' ? outputs.project_charter : 'Not generated yet.' },
+    { title: 'Success Metrics', body: typeof outputs.success_metrics === 'string' ? outputs.success_metrics : 'Not generated yet.' },
+    { title: 'Risk Register', body: typeof outputs.risk_register === 'string' ? outputs.risk_register : 'Not generated yet.' },
+  ]
 
   return (
     <section className="rounded-lg border p-5">
@@ -104,9 +107,9 @@ export function ClientDiscoveryPanel(props: {
           <div key={key} className={key === 'client_brief' || key === 'business_problem' ? 'md:col-span-2' : ''}>
             <Label htmlFor={key}>{label}</Label>
             {key === 'budget' || key === 'timeline' ? (
-              <Input id={key} className="mt-1.5" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} disabled={pending} />
+              <Input id={key} className="mt-1.5" value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })} disabled={pending} />
             ) : (
-              <Textarea id={key} className="mt-1.5 min-h-24" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} disabled={pending} />
+              <Textarea id={key} className="mt-1.5 min-h-24" value={form[key]} onChange={(event) => setForm({ ...form, [key]: event.target.value })} disabled={pending} />
             )}
           </div>
         ))}
@@ -120,15 +123,10 @@ export function ClientDiscoveryPanel(props: {
         <div className="mt-5 border-t pt-5">
           <h3 className="text-sm font-medium">Generated outputs</h3>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {[
-              ['Creative Brief', outputs.creative_brief],
-              ['Project Charter', outputs.project_charter],
-              ['Success Metrics', outputs.success_metrics],
-              ['Risk Register', outputs.risk_register],
-            ].map(([title, body]) => (
-              <div key={title as string} className="rounded-md bg-muted/40 p-4">
-                <p className="text-sm font-medium">{title}</p>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{typeof body === 'string' ? body : 'Not generated yet.'}</p>
+            {outputCards.map((output) => (
+              <div key={output.title} className="rounded-md bg-muted/40 p-4">
+                <p className="text-sm font-medium">{output.title}</p>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{output.body}</p>
               </div>
             ))}
           </div>
@@ -137,7 +135,7 @@ export function ClientDiscoveryPanel(props: {
 
       {awaiting ? (
         <div className="mt-5 space-y-3 border-t pt-5">
-          <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Optional approval note or revision details" disabled={pending} />
+          <Textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Optional approval note or revision details" disabled={pending} />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => decide('revision_requested')} disabled={pending}>Request revision</Button>
             <Button onClick={() => decide('approved')} disabled={pending}>Approve Client Discovery</Button>
