@@ -38,7 +38,7 @@ export type WorkflowTemplateKey =
   | 'custom_v1'
 
 export type WorkflowKey = 'mvp_v1'
-export type StageKey = 'brief' | 'research' | 'script' | 'production_package'
+export type StageKey = string
 export type StageStatus =
   | 'pending'
   | 'ready'
@@ -76,6 +76,7 @@ export interface ProductionStage {
   id: string
   production_id: string
   stage_key: StageKey
+  title: string
   position: number
   status: StageStatus
   created_at: string
