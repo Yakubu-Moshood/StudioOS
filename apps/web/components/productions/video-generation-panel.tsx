@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 
-export function VideoGenerationPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: VideoGenerationVersion[] }) {
+export function VideoGenerationPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: VideoGenerationVersion[]; activeRunId?: string | null }) {
   const latest = props.versions[0] ?? null
   const content = latest?.content as Record<string, unknown> | undefined
   const outputUrl = typeof content?.video_url === 'string' ? content.video_url : ''
   const decision = latest?.approval?.decision ?? null
-  const [runId, setRunId] = useState('')
+  const [runId, setRunId] = useState(props.activeRunId ?? '')
   const [provider, setProvider] = useState('manual')
   const [model, setModel] = useState('')
   const [url, setUrl] = useState('')
@@ -67,7 +67,7 @@ export function VideoGenerationPanel(props: { projectId: string; productionId: s
       <div className="mt-4 space-y-3">
         {!runId ? <Button onClick={startRun} disabled={pending || !props.canStart}>{pending ? 'Starting…' : latest ? 'Start retry run' : 'Start Video Generation'}</Button> : (
           <div className="grid gap-3">
-            <div className="text-sm text-muted-foreground">Active run: {runId}</div>
+            <div className="text-sm text-muted-foreground">Active run recovered: {runId}</div>
             <Input value={provider} onChange={(event) => setProvider(event.target.value)} placeholder="Provider, for example Runway" disabled={pending} />
             <Input value={model} onChange={(event) => setModel(event.target.value)} placeholder="Model or workflow name" disabled={pending} />
             <Input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="Generated video URL" disabled={pending} />
