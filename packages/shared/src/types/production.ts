@@ -25,6 +25,18 @@ export type ProductionState =
   | 'completed'
   | 'cancelled'
 
+export type ProductionType =
+  | 'advertising_campaign'
+  | 'documentary'
+  | 'explainer_video'
+  | 'custom'
+
+export type WorkflowTemplateKey =
+  | 'advertising_campaign_v1'
+  | 'documentary_v1'
+  | 'explainer_video_v1'
+  | 'custom_v1'
+
 export type WorkflowKey = 'mvp_v1'
 export type StageKey = 'brief' | 'research' | 'script' | 'production_package'
 export type StageStatus =
@@ -51,6 +63,8 @@ export interface Production {
   title: string
   state: ProductionState
   workflow_key: WorkflowKey
+  production_type: ProductionType
+  workflow_template_key: WorkflowTemplateKey
   created_by: string
   completed_at: string | null
   cancelled_at: string | null
