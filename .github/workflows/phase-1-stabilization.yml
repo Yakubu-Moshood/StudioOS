@@ -23,22 +23,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Enable Corepack
         run: corepack enable
-
       - name: Set up pnpm
         run: corepack prepare pnpm@9.15.0 --activate
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Typecheck
         id: typecheck
         shell: bash
@@ -50,7 +45,6 @@ jobs:
             grep -E "error TS|ELIFECYCLE|command finished with error" typecheck.log > typecheck-summary.log || tail -n 160 typecheck.log > typecheck-summary.log
             exit "$status"
           fi
-
       - name: Upload typecheck diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -61,10 +55,8 @@ jobs:
             typecheck-summary.log
           if-no-files-found: ignore
           retention-days: 2
-
       - name: Lint
         run: pnpm lint
-
       - name: Build
         run: pnpm build
 
@@ -75,7 +67,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Upload committed migrations
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-migrations
+          path: database/migrations
+          retention-days: 2
       - name: Verify migration sequence
         shell: bash
         run: |
@@ -85,33 +82,14 @@ jobs:
             count=$(find database/migrations -maxdepth 1 -type f -name "${number}_*.sql" | wc -l)
             test "$count" -eq 1 || { echo "Expected exactly one migration ${number}, found ${count}"; exit 1; }
           done
-
       - name: Verify required workflow functions
         shell: bash
         run: |
           set -euo pipefail
-          functions=(
-            create_mvp_production
-            create_brief_version
-            decide_brief_version
-            start_research_run
-            complete_research_run
-            fail_research_run
-            decide_research_version
-            start_script_run
-            complete_script_run
-            fail_script_run
-            decide_script_version
-            assemble_production_package
-            decide_production_package_version
-          )
+          functions=(create_mvp_production create_brief_version decide_brief_version start_research_run complete_research_run fail_research_run decide_research_version start_script_run complete_script_run fail_script_run decide_script_version assemble_production_package decide_production_package_version)
           for function_name in "${functions[@]}"; do
-            grep -Rqi "function public.${function_name}" database/migrations || {
-              echo "Missing database function: ${function_name}"
-              exit 1
-            }
+            grep -Rqi "function public.${function_name}" database/migrations || { echo "Missing database function: ${function_name}"; exit 1; }
           done
-
       - name: Reject destructive migration statements
         shell: bash
         run: |
