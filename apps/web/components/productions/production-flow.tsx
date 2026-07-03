@@ -6,6 +6,7 @@ import { getCreativeStageVersions } from '@/app/actions/creative-stages'
 import { getVisualDevelopmentVersions } from '@/app/actions/visual-development'
 import { getStoryboardVersions } from '@/app/actions/storyboard'
 import { getShotDesignVersions } from '@/app/actions/shot-design'
+import { getAssetCreationVersions } from '@/app/actions/asset-creation'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
@@ -16,16 +17,13 @@ import { ScriptPanel } from './script-panel'
 import { VisualDevelopmentPanel } from './visual-development-panel'
 import { StoryboardPanel } from './storyboard-panel'
 import { ShotDesignPanel } from './shot-design-panel'
+import { AssetCreationPanel } from './asset-creation-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
 
-export async function ProductionFlow(props: {
-  projectId: string
-  productionId: string
-  workflow: ProductionWorkflowView
-}) {
-  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, packages] = await Promise.all([
+export async function ProductionFlow(props: { projectId: string; productionId: string; workflow: ProductionWorkflowView }) {
+  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, packages] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
@@ -34,11 +32,11 @@ export async function ProductionFlow(props: {
     getVisualDevelopmentVersions(props.productionId),
     getStoryboardVersions(props.productionId),
     getShotDesignVersions(props.productionId),
+    getAssetCreationVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
   ])
 
-  const task = (key: string) =>
-    props.workflow.stages.flatMap((stage) => stage.tasks).find((item) => item.task_key === key)
+  const task = (key: string) => props.workflow.stages.flatMap((stage) => stage.tasks).find((item) => item.task_key === key)
   const ready = (key: string) => ['ready', 'failed'].includes(task(key)?.status ?? '')
   const latestPackage = packages[0] ?? null
   const isAdvertising = props.workflow.production.production_type === 'advertising_campaign'
@@ -46,72 +44,25 @@ export async function ProductionFlow(props: {
   return (
     <div className="grid gap-6">
       {isAdvertising ? <WorkflowOverview stages={props.workflow.stages} /> : null}
-      {isAdvertising ? (
-        <ClientDiscoveryPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
-      ) : (
-        <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
-      )}
-      <ResearchPanel
-        projectId={props.projectId}
-        productionId={props.productionId}
-        canGenerate={ready('generate_research')}
-        versions={research}
-        mode={isAdvertising ? 'strategic_discovery' : 'research'}
-      />
+      {isAdvertising ? <ClientDiscoveryPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} /> : <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />}
+      <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} mode={isAdvertising ? 'strategic_discovery' : 'research'} />
       {isAdvertising ? (
         <>
-          <BigCreativeIdeaPanel
-            projectId={props.projectId}
-            productionId={props.productionId}
-            canGenerate={ready('complete_big_creative_idea')}
-            versions={bigIdeas}
-          />
-          <ConceptDevelopmentPanel
-            projectId={props.projectId}
-            productionId={props.productionId}
-            canGenerate={ready('complete_concept_development')}
-            versions={concepts}
-          />
+          <BigCreativeIdeaPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_big_creative_idea')} versions={bigIdeas} />
+          <ConceptDevelopmentPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_concept_development')} versions={concepts} />
         </>
       ) : null}
-      <ScriptPanel
-        projectId={props.projectId}
-        productionId={props.productionId}
-        canGenerate={ready('generate_script')}
-        versions={scripts}
-        mode={isAdvertising ? 'advertising_script' : 'script'}
-      />
+      <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} mode={isAdvertising ? 'advertising_script' : 'script'} />
       {isAdvertising ? (
         <>
-          <VisualDevelopmentPanel
-            projectId={props.projectId}
-            productionId={props.productionId}
-            canGenerate={ready('complete_visual_development')}
-            versions={visualDevelopment}
-          />
-          <StoryboardPanel
-            projectId={props.projectId}
-            productionId={props.productionId}
-            canGenerate={ready('complete_storyboard')}
-            versions={storyboard}
-          />
-          <ShotDesignPanel
-            projectId={props.projectId}
-            productionId={props.productionId}
-            canGenerate={ready('complete_shot_design')}
-            versions={shotDesign}
-          />
+          <VisualDevelopmentPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_visual_development')} versions={visualDevelopment} />
+          <StoryboardPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_storyboard')} versions={storyboard} />
+          <ShotDesignPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_shot_design')} versions={shotDesign} />
+          <AssetCreationPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_asset_creation')} versions={assetCreation} />
         </>
       ) : null}
-      <PkgPanel
-        projectId={props.projectId}
-        productionId={props.productionId}
-        enabled={ready('assemble_production_package')}
-        versions={packages}
-      />
-      {latestPackage && !latestPackage.approval ? (
-        <PkgReview projectId={props.projectId} productionId={props.productionId} version={latestPackage} />
-      ) : null}
+      <PkgPanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={packages} />
+      {latestPackage && !latestPackage.approval ? <PkgReview projectId={props.projectId} productionId={props.productionId} version={latestPackage} /> : null}
     </div>
   )
 }
