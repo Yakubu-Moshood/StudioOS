@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getProductionWorkflow } from '@/app/actions/productions'
 import { ProductionFlow } from '@/components/productions/production-flow'
@@ -14,6 +15,15 @@ export default async function ProductionPage({
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
+      <div>
+        <Link
+          href={`/workspace/${projectId}/productions`}
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          ← Back to Productions
+        </Link>
+      </div>
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Production</p>
