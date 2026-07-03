@@ -37,7 +37,13 @@ export async function ProductionFlow(props: {
       ) : (
         <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
       )}
-      <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} />
+      <ResearchPanel
+        projectId={props.projectId}
+        productionId={props.productionId}
+        canGenerate={ready('generate_research')}
+        versions={research}
+        mode={isAdvertising ? 'strategic_discovery' : 'research'}
+      />
       <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
       <PkgPanel
         projectId={props.projectId}
