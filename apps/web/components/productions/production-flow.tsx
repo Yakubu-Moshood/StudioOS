@@ -65,7 +65,13 @@ export async function ProductionFlow(props: {
           />
         </>
       ) : null}
-      <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
+      <ScriptPanel
+        projectId={props.projectId}
+        productionId={props.productionId}
+        canGenerate={ready('generate_script')}
+        versions={scripts}
+        mode={isAdvertising ? 'advertising_script' : 'script'}
+      />
       <PkgPanel
         projectId={props.projectId}
         productionId={props.productionId}
