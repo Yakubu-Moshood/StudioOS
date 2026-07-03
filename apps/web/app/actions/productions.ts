@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { Production, ProductionStage, ProductionTask } from '@studioos/shared'
+import type { Production, ProductionStage, ProductionTask, ProductionType } from '@studioos/shared'
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string }
 
@@ -74,9 +74,20 @@ export async function getProductionWorkflow(
 export async function createProduction(input: {
   projectId: string
   title: string
+  productionType: ProductionType
 }): Promise<ActionResult<Production>> {
   const title = input.title.trim()
   if (!title) return { success: false, error: 'Production title is required.' }
+
+  const allowedTypes: ProductionType[] = [
+    'advertising_campaign',
+    'documentary',
+    'explainer_video',
+    'custom',
+  ]
+  if (!allowedTypes.includes(input.productionType)) {
+    return { success: false, error: 'Choose a valid production type.' }
+  }
 
   const supabase = await createClient()
   const {
@@ -88,6 +99,7 @@ export async function createProduction(input: {
   const { data, error } = await supabase.rpc('create_mvp_production', {
     target_project_id: input.projectId,
     production_title: title,
+    selected_production_type: input.productionType,
   })
 
   if (error || !data) {
