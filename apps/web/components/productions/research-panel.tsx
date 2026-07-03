@@ -30,7 +30,10 @@ export function ResearchPanel(props: ResearchPanelProps) {
         productionId: props.productionId,
         revisionInstruction: instruction,
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       setInstruction('')
       toast.success(`Research version ${result.data.version_number} generated.`)
     })
@@ -46,7 +49,10 @@ export function ResearchPanel(props: ResearchPanelProps) {
         decision: nextDecision,
         comment,
       })
-      if (!result.success) return toast.error(result.error)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
       setComment('')
       toast.success(nextDecision === 'approved' ? 'Research approved.' : 'Revision requested.')
     })
