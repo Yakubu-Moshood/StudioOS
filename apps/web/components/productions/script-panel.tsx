@@ -69,7 +69,7 @@ export function ScriptPanel(props: ScriptPanelProps) {
           <h2 className="font-medium">{advertising ? 'Script Development' : 'Script'}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {advertising
-              ? 'Turns the approved campaign concept into a timed hero-film script and cutdown plan.'
+              ? 'Turns the approved campaign concept into a production-ready hero-film script and cutdown plan.'
               : 'Requires approved Brief and Research versions.'}
           </p>
         </div>
