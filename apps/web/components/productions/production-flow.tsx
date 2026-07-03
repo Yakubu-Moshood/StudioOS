@@ -2,10 +2,12 @@ import { getBriefVersions } from '@/app/actions/briefs'
 import { getResearchVersions } from '@/app/actions/research'
 import { getScriptVersions } from '@/app/actions/scripts'
 import { getProductionPackageVersions } from '@/app/actions/production-packages'
+import { getCreativeStageVersions } from '@/app/actions/creative-stages'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
 import { ResearchPanel } from './research-panel'
+import { BigCreativeIdeaPanel } from './big-creative-idea-panel'
 import { ScriptPanel } from './script-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
@@ -16,9 +18,10 @@ export async function ProductionFlow(props: {
   productionId: string
   workflow: ProductionWorkflowView
 }) {
-  const [briefs, research, scripts, packages] = await Promise.all([
+  const [briefs, research, bigIdeas, scripts, packages] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
+    getCreativeStageVersions(props.productionId, 'big_creative_idea'),
     getScriptVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
   ])
@@ -44,6 +47,14 @@ export async function ProductionFlow(props: {
         versions={research}
         mode={isAdvertising ? 'strategic_discovery' : 'research'}
       />
+      {isAdvertising ? (
+        <BigCreativeIdeaPanel
+          projectId={props.projectId}
+          productionId={props.productionId}
+          canGenerate={ready('complete_big_creative_idea')}
+          versions={bigIdeas}
+        />
+      ) : null}
       <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
       <PkgPanel
         projectId={props.projectId}
