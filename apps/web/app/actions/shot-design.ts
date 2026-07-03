@@ -62,6 +62,7 @@ export async function generateShotDesign(input: {
   productionId: string
   instruction?: string
 }): Promise<Result<ArtifactVersion>> {
+  const supabase = await createClient()
   const storyboardBody = await loadLatestBody(input.productionId, 'storyboard')
 
   if (!storyboardBody) {
