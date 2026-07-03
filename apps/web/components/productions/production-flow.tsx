@@ -8,6 +8,7 @@ import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
 import { ResearchPanel } from './research-panel'
 import { BigCreativeIdeaPanel } from './big-creative-idea-panel'
+import { ConceptDevelopmentPanel } from './concept-development-panel'
 import { ScriptPanel } from './script-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
@@ -18,10 +19,11 @@ export async function ProductionFlow(props: {
   productionId: string
   workflow: ProductionWorkflowView
 }) {
-  const [briefs, research, bigIdeas, scripts, packages] = await Promise.all([
+  const [briefs, research, bigIdeas, concepts, scripts, packages] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
+    getCreativeStageVersions(props.productionId, 'concept_development'),
     getScriptVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
   ])
@@ -48,12 +50,20 @@ export async function ProductionFlow(props: {
         mode={isAdvertising ? 'strategic_discovery' : 'research'}
       />
       {isAdvertising ? (
-        <BigCreativeIdeaPanel
-          projectId={props.projectId}
-          productionId={props.productionId}
-          canGenerate={ready('complete_big_creative_idea')}
-          versions={bigIdeas}
-        />
+        <>
+          <BigCreativeIdeaPanel
+            projectId={props.projectId}
+            productionId={props.productionId}
+            canGenerate={ready('complete_big_creative_idea')}
+            versions={bigIdeas}
+          />
+          <ConceptDevelopmentPanel
+            projectId={props.projectId}
+            productionId={props.productionId}
+            canGenerate={ready('complete_concept_development')}
+            versions={concepts}
+          />
+        </>
       ) : null}
       <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
       <PkgPanel
