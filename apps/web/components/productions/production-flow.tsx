@@ -13,6 +13,7 @@ import { getAiGenerationPackageVersions } from '@/app/actions/ai-generation-pack
 import { getVideoGenerationVersions } from '@/app/actions/video-generation'
 import { getPostProductionVersions } from '@/app/actions/post-production'
 import { getDeliveryVersions } from '@/app/actions/delivery'
+import { getActiveProductionRun } from '@/app/actions/active-runs'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
@@ -35,7 +36,7 @@ import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
 
 export async function ProductionFlow(props: { projectId: string; productionId: string; workflow: ProductionWorkflowView }) {
-  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages, campaignPackages] = await Promise.all([
+  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages, campaignPackages, activeVideoRun, activePostProductionRun, activeDeliveryRun] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
@@ -52,6 +53,9 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
     getDeliveryVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
     getCampaignPackageVersions(props.productionId),
+    getActiveProductionRun(props.productionId, 'video_generation'),
+    getActiveProductionRun(props.productionId, 'post_production'),
+    getActiveProductionRun(props.productionId, 'delivery'),
   ])
 
   const task = (key: string) => props.workflow.stages.flatMap((stage) => stage.tasks).find((item) => item.task_key === key)
@@ -79,9 +83,9 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
           <AssetCreationPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_asset_creation')} versions={assetCreation} />
           <SceneIntelligencePanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_scene_intelligence')} versions={sceneIntelligence} />
           <AiGenerationPackagePanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_ai_generation_package')} versions={aiGenerationPackage} />
-          <VideoGenerationPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_video_generation')} versions={generatedVideos} />
-          <PostProductionPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_post_production')} versions={postProductionMasters} />
-          <DeliveryPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_delivery')} versions={deliveries} />
+          <VideoGenerationPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_video_generation')} versions={generatedVideos} activeRunId={activeVideoRun?.id} />
+          <PostProductionPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_post_production')} versions={postProductionMasters} activeRunId={activePostProductionRun?.id} />
+          <DeliveryPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_delivery')} versions={deliveries} activeRunId={activeDeliveryRun?.id} />
           <CampaignPackagePanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={campaignPackages} />
         </>
       ) : (
