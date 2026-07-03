@@ -31,7 +31,12 @@ export async function ProductionFlow(props: {
       <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
       <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} />
       <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
-      <PkgPanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} />
+      <PkgPanel
+        projectId={props.projectId}
+        productionId={props.productionId}
+        enabled={ready('assemble_production_package')}
+        versions={packages}
+      />
       {latestPackage && !latestPackage.approval ? (
         <PkgReview projectId={props.projectId} productionId={props.productionId} version={latestPackage} />
       ) : null}
