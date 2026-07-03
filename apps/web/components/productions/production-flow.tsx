@@ -8,6 +8,7 @@ import { ResearchPanel } from './research-panel'
 import { ScriptPanel } from './script-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
+import { WorkflowOverview } from './workflow-overview'
 
 export async function ProductionFlow(props: {
   projectId: string
@@ -28,6 +29,9 @@ export async function ProductionFlow(props: {
 
   return (
     <div className="grid gap-6">
+      {props.workflow.production.production_type === 'advertising_campaign' ? (
+        <WorkflowOverview stages={props.workflow.stages} />
+      ) : null}
       <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />
       <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} />
       <ScriptPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_script')} versions={scripts} />
