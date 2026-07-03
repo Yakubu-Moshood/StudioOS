@@ -3,6 +3,7 @@ import { getResearchVersions } from '@/app/actions/research'
 import { getScriptVersions } from '@/app/actions/scripts'
 import { getProductionPackageVersions } from '@/app/actions/production-packages'
 import { getCreativeStageVersions } from '@/app/actions/creative-stages'
+import { getVisualDevelopmentVersions } from '@/app/actions/visual-development'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
@@ -10,6 +11,7 @@ import { ResearchPanel } from './research-panel'
 import { BigCreativeIdeaPanel } from './big-creative-idea-panel'
 import { ConceptDevelopmentPanel } from './concept-development-panel'
 import { ScriptPanel } from './script-panel'
+import { VisualDevelopmentPanel } from './visual-development-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
@@ -19,12 +21,13 @@ export async function ProductionFlow(props: {
   productionId: string
   workflow: ProductionWorkflowView
 }) {
-  const [briefs, research, bigIdeas, concepts, scripts, packages] = await Promise.all([
+  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, packages] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
     getCreativeStageVersions(props.productionId, 'concept_development'),
     getScriptVersions(props.productionId),
+    getVisualDevelopmentVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
   ])
 
@@ -72,6 +75,14 @@ export async function ProductionFlow(props: {
         versions={scripts}
         mode={isAdvertising ? 'advertising_script' : 'script'}
       />
+      {isAdvertising ? (
+        <VisualDevelopmentPanel
+          projectId={props.projectId}
+          productionId={props.productionId}
+          canGenerate={ready('complete_visual_development')}
+          versions={visualDevelopment}
+        />
+      ) : null}
       <PkgPanel
         projectId={props.projectId}
         productionId={props.productionId}
