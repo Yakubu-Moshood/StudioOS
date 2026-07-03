@@ -10,6 +10,7 @@ import { getAssetCreationVersions } from '@/app/actions/asset-creation'
 import { getSceneIntelligenceVersions } from '@/app/actions/scene-intelligence'
 import { getAiGenerationPackageVersions } from '@/app/actions/ai-generation-package'
 import { getVideoGenerationVersions } from '@/app/actions/video-generation'
+import { getPostProductionVersions } from '@/app/actions/post-production'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
@@ -24,12 +25,13 @@ import { AssetCreationPanel } from './asset-creation-panel'
 import { SceneIntelligencePanel } from './scene-intelligence-panel'
 import { AiGenerationPackagePanel } from './ai-generation-package-panel'
 import { VideoGenerationPanel } from './video-generation-panel'
+import { PostProductionPanel } from './post-production-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
 
 export async function ProductionFlow(props: { projectId: string; productionId: string; workflow: ProductionWorkflowView }) {
-  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, packages] = await Promise.all([
+  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, packages] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
@@ -42,6 +44,7 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
     getSceneIntelligenceVersions(props.productionId),
     getAiGenerationPackageVersions(props.productionId),
     getVideoGenerationVersions(props.productionId),
+    getPostProductionVersions(props.productionId),
     getProductionPackageVersions(props.productionId),
   ])
 
@@ -71,6 +74,7 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
           <SceneIntelligencePanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_scene_intelligence')} versions={sceneIntelligence} />
           <AiGenerationPackagePanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('complete_ai_generation_package')} versions={aiGenerationPackage} />
           <VideoGenerationPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_video_generation')} versions={generatedVideos} />
+          <PostProductionPanel projectId={props.projectId} productionId={props.productionId} canStart={ready('complete_post_production')} versions={postProductionMasters} />
         </>
       ) : null}
       <PkgPanel projectId={props.projectId} productionId={props.productionId} enabled={ready('assemble_production_package')} versions={packages} />
