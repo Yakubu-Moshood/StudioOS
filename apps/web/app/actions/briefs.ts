@@ -38,9 +38,11 @@ export async function getBriefVersions(productionId: string): Promise<BriefVersi
 
   return (data ?? []).map((row) => {
     const { approvals, ...version } = row
+    const approval = Array.isArray(approvals) ? approvals[0] : approvals
+
     return {
       ...(version as ArtifactVersion),
-      approval: ((approvals ?? [])[0] as Approval | undefined) ?? null,
+      approval: (approval as Approval | null | undefined) ?? null,
     }
   })
 }
