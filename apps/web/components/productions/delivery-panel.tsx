@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 
-export function DeliveryPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: DeliveryVersion[] }) {
+export function DeliveryPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: DeliveryVersion[]; activeRunId?: string | null }) {
   const latest = props.versions[0] ?? null
   const content = latest?.content as Record<string, unknown> | undefined
   const deliveryUrl = typeof content?.delivery_url === 'string' ? content.delivery_url : ''
   const decision = latest?.approval?.decision ?? null
-  const [runId, setRunId] = useState('')
+  const [runId, setRunId] = useState(props.activeRunId ?? '')
   const [method, setMethod] = useState('Manual delivery')
   const [recipient, setRecipient] = useState('')
   const [url, setUrl] = useState('')
@@ -91,7 +91,7 @@ export function DeliveryPanel(props: { projectId: string; productionId: string; 
       <div className="mt-4 space-y-3">
         {!runId ? <Button onClick={startRun} disabled={pending || !props.canStart}>{pending ? 'Starting…' : latest ? 'Start delivery revision' : 'Start Delivery'}</Button> : (
           <div className="grid gap-3">
-            <div className="text-sm text-muted-foreground">Active run: {runId}</div>
+            <div className="text-sm text-muted-foreground">Active run recovered: {runId}</div>
             <div className="grid gap-2 rounded-md bg-muted/40 p-4">
               {checks.map(([label, checked, setter]) => (
                 <label key={label} className="flex items-center gap-2 text-sm">
