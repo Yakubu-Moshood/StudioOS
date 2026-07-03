@@ -13,6 +13,7 @@ interface ResearchPanelProps {
   productionId: string
   canGenerate: boolean
   versions: ResearchVersionView[]
+  mode?: 'research' | 'strategic_discovery'
 }
 
 export function ResearchPanel(props: ResearchPanelProps) {
@@ -22,6 +23,7 @@ export function ResearchPanel(props: ResearchPanelProps) {
   const [instruction, setInstruction] = useState('')
   const [comment, setComment] = useState('')
   const [isPending, startTransition] = useTransition()
+  const strategic = props.mode === 'strategic_discovery'
 
   function handleGenerate() {
     startTransition(async () => {
@@ -35,7 +37,7 @@ export function ResearchPanel(props: ResearchPanelProps) {
         return
       }
       setInstruction('')
-      toast.success(`Research version ${result.data.version_number} generated.`)
+      toast.success(`${strategic ? 'Strategic Discovery' : 'Research'} version ${result.data.version_number} generated.`)
     })
   }
 
@@ -54,7 +56,9 @@ export function ResearchPanel(props: ResearchPanelProps) {
         return
       }
       setComment('')
-      toast.success(nextDecision === 'approved' ? 'Research approved.' : 'Revision requested.')
+      toast.success(nextDecision === 'approved'
+        ? `${strategic ? 'Strategic Discovery' : 'Research'} approved.`
+        : 'Revision requested.')
     })
   }
 
@@ -62,8 +66,12 @@ export function ResearchPanel(props: ResearchPanelProps) {
     <section className="rounded-lg border p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-medium">Research</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Requires an approved Brief.</p>
+          <h2 className="font-medium">{strategic ? 'Strategic Discovery' : 'Research'}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {strategic
+              ? 'Uses the approved Client Discovery to define the campaign strategy.'
+              : 'Requires an approved Brief.'}
+          </p>
         </div>
         {latest ? (
           <Badge variant="outline">
@@ -72,8 +80,16 @@ export function ResearchPanel(props: ResearchPanelProps) {
         ) : null}
       </div>
 
+      {strategic && !body ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {['Audience Insight', 'Competitor Analysis', 'Cultural and Market Context', 'Brand Opportunity', 'Campaign Positioning', 'Strategic Proposition'].map((item) => (
+            <div key={item} className="rounded-md bg-muted/40 p-3 text-sm text-muted-foreground">{item}</div>
+          ))}
+        </div>
+      ) : null}
+
       {body ? (
-        <div className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-muted/40 p-4 text-sm">
+        <div className="mt-4 max-h-[36rem] overflow-auto whitespace-pre-wrap rounded-md bg-muted/40 p-4 text-sm">
           {body}
         </div>
       ) : null}
@@ -82,12 +98,18 @@ export function ResearchPanel(props: ResearchPanelProps) {
         <Textarea
           value={instruction}
           onChange={(event) => setInstruction(event.target.value)}
-          placeholder="Optional Research focus or revision instruction"
+          placeholder={strategic ? 'Optional strategic focus or revision instruction' : 'Optional Research focus or revision instruction'}
           disabled={isPending || !props.canGenerate}
         />
         <div className="flex justify-end">
           <Button onClick={handleGenerate} disabled={isPending || !props.canGenerate}>
-            {isPending ? 'Generating…' : latest ? 'Generate new version' : 'Generate Research'}
+            {isPending
+              ? 'Generating…'
+              : latest
+                ? 'Generate new version'
+                : strategic
+                  ? 'Generate Strategic Discovery'
+                  : 'Generate Research'}
           </Button>
         </div>
       </div>
@@ -105,7 +127,7 @@ export function ResearchPanel(props: ResearchPanelProps) {
               Request revision
             </Button>
             <Button onClick={() => handleDecision('approved')} disabled={isPending}>
-              Approve Research
+              Approve {strategic ? 'Strategic Discovery' : 'Research'}
             </Button>
           </div>
         </div>
