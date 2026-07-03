@@ -1,35 +1,16 @@
 import { notFound } from 'next/navigation'
 import { getProductionWorkflow } from '@/app/actions/productions'
-import { getBriefVersions } from '@/app/actions/briefs'
-import { getResearchVersions } from '@/app/actions/research'
-import { BriefPanel } from '@/components/productions/brief-panel'
-import { ResearchPanel } from '@/components/productions/research-panel'
+import { ProductionFlow } from '@/components/productions/production-flow'
 import { Badge } from '@/components/ui/badge'
 
-const STAGE_LABELS = {
-  brief: 'Brief',
-  research: 'Research',
-  script: 'Script',
-  production_package: 'Production Package',
-} as const
-
-interface ProductionPageProps {
+export default async function ProductionPage({
+  params,
+}: {
   params: Promise<{ projectId: string; productionId: string }>
-}
-
-export default async function ProductionPage({ params }: ProductionPageProps) {
+}) {
   const { projectId, productionId } = await params
-  const [workflow, briefVersions, researchVersions] = await Promise.all([
-    getProductionWorkflow(projectId, productionId),
-    getBriefVersions(productionId),
-    getResearchVersions(productionId),
-  ])
-
+  const workflow = await getProductionWorkflow(projectId, productionId)
   if (!workflow) notFound()
-
-  const researchStage = workflow.stages.find((stage) => stage.stage_key === 'research')
-  const researchTask = researchStage?.tasks.find((task) => task.task_key === 'generate_research')
-  const canGenerateResearch = researchTask?.status === 'ready' || researchTask?.status === 'failed'
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
@@ -40,45 +21,7 @@ export default async function ProductionPage({ params }: ProductionPageProps) {
         </div>
         <Badge variant="secondary">{workflow.production.state.replace('_', ' ')}</Badge>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-4">
-        {workflow.stages.map((stage) => (
-          <section key={stage.id} className="rounded-lg border p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-xs text-muted-foreground">Stage {stage.position}</span>
-                <h2 className="mt-1 font-medium">{STAGE_LABELS[stage.stage_key]}</h2>
-              </div>
-              <Badge variant={stage.status === 'ready' ? 'default' : 'outline'}>
-                {stage.status.replace('_', ' ')}
-              </Badge>
-            </div>
-            <div className="mt-4 grid gap-2">
-              {stage.tasks.map((task) => (
-                <div key={task.id} className="rounded-md bg-muted/40 px-3 py-2 text-sm">
-                  <div>{task.title}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {task.status.replace('_', ' ')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <BriefPanel projectId={projectId} productionId={productionId} versions={briefVersions} />
-
-      <ResearchPanel
-        projectId={projectId}
-        productionId={productionId}
-        canGenerate={canGenerateResearch}
-        versions={researchVersions}
-      />
-
-      <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-        Script remains locked until the latest Research version is explicitly approved.
-      </div>
+      <ProductionFlow projectId={projectId} productionId={productionId} workflow={workflow} />
     </div>
   )
 }
