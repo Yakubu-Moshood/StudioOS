@@ -36,6 +36,7 @@ import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
 import { ArtifactLibraryPanel } from './artifact-library-panel'
+import { ProductionNextAction } from './production-next-action'
 
 export async function ProductionFlow(props: { projectId: string; productionId: string; workflow: ProductionWorkflowView }) {
   const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages, campaignPackages, activeVideoRun, activePostProductionRun, activeDeliveryRun, artifactLibraryItems] = await Promise.all([
@@ -69,6 +70,7 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
   return (
     <div className="grid gap-6">
       {isAdvertising ? <WorkflowOverview stages={props.workflow.stages} /> : null}
+      <ProductionNextAction stages={props.workflow.stages} />
       <ArtifactLibraryPanel items={artifactLibraryItems} />
       {isAdvertising ? <ClientDiscoveryPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} /> : <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />}
       <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} mode={isAdvertising ? 'strategic_discovery' : 'research'} />
