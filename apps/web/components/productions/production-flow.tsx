@@ -14,6 +14,7 @@ import { getVideoGenerationVersions } from '@/app/actions/video-generation'
 import { getPostProductionVersions } from '@/app/actions/post-production'
 import { getDeliveryVersions } from '@/app/actions/delivery'
 import { getActiveProductionRun } from '@/app/actions/active-runs'
+import { getArtifactLibraryItems } from '@/app/actions/artifact-library'
 import type { ProductionWorkflowView } from '@/app/actions/productions'
 import { BriefPanel } from './brief-panel'
 import { ClientDiscoveryPanel } from './client-discovery-panel'
@@ -34,9 +35,10 @@ import { CampaignPackagePanel } from './campaign-package-panel'
 import { PkgPanel } from './pkg-panel'
 import { PkgReview } from './pkg-review'
 import { WorkflowOverview } from './workflow-overview'
+import { ArtifactLibraryPanel } from './artifact-library-panel'
 
 export async function ProductionFlow(props: { projectId: string; productionId: string; workflow: ProductionWorkflowView }) {
-  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages, campaignPackages, activeVideoRun, activePostProductionRun, activeDeliveryRun] = await Promise.all([
+  const [briefs, research, bigIdeas, concepts, scripts, visualDevelopment, storyboard, shotDesign, assetCreation, sceneIntelligence, aiGenerationPackage, generatedVideos, postProductionMasters, deliveries, packages, campaignPackages, activeVideoRun, activePostProductionRun, activeDeliveryRun, artifactLibraryItems] = await Promise.all([
     getBriefVersions(props.productionId),
     getResearchVersions(props.productionId),
     getCreativeStageVersions(props.productionId, 'big_creative_idea'),
@@ -56,6 +58,7 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
     getActiveProductionRun(props.productionId, 'video_generation'),
     getActiveProductionRun(props.productionId, 'post_production'),
     getActiveProductionRun(props.productionId, 'delivery'),
+    getArtifactLibraryItems(props.productionId),
   ])
 
   const task = (key: string) => props.workflow.stages.flatMap((stage) => stage.tasks).find((item) => item.task_key === key)
@@ -66,6 +69,7 @@ export async function ProductionFlow(props: { projectId: string; productionId: s
   return (
     <div className="grid gap-6">
       {isAdvertising ? <WorkflowOverview stages={props.workflow.stages} /> : null}
+      <ArtifactLibraryPanel items={artifactLibraryItems} />
       {isAdvertising ? <ClientDiscoveryPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} /> : <BriefPanel projectId={props.projectId} productionId={props.productionId} versions={briefs} />}
       <ResearchPanel projectId={props.projectId} productionId={props.productionId} canGenerate={ready('generate_research')} versions={research} mode={isAdvertising ? 'strategic_discovery' : 'research'} />
       {isAdvertising ? (
