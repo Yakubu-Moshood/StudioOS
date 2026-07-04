@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { ProductionArtifactUpload } from '@/components/productions/production-artifact-upload'
 import { toast } from 'sonner'
 
 export function PostProductionPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: PostProductionVersion[]; activeRunId?: string | null }) {
@@ -105,6 +106,7 @@ export function PostProductionPanel(props: { projectId: string; productionId: st
             </div>
             <Input value={provider} onChange={(event) => setProvider(event.target.value)} placeholder="Provider or editor" disabled={pending} />
             <Input value={workflow} onChange={(event) => setWorkflow(event.target.value)} placeholder="Editing workflow or software" disabled={pending} />
+            <ProductionArtifactUpload productionId={props.productionId} artifactKind="post-production-master" disabled={pending} onUploaded={setUrl} />
             <Input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="Final master URL" disabled={pending} />
             <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional finishing notes" disabled={pending} />
             <div className="flex justify-end"><Button onClick={registerMaster} disabled={pending}>{pending ? 'Saving…' : 'Register Post-production Master'}</Button></div>
