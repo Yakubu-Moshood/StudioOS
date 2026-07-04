@@ -1,0 +1,17 @@
+name: Export Migrations
+
+on:
+  push:
+    branches: [feature/phase-1-mvp-foundation]
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: database-migrations
+          path: database/migrations
+          retention-days: 2

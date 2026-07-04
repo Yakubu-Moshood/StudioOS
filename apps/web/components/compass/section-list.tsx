@@ -8,7 +8,7 @@ interface SectionListProps {
 
 export function SectionList({ sections, projectId }: SectionListProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {sections.map((section, index) => (
         <SectionCard
           key={section.id}

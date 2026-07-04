@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .single()
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#fbfaf7] text-[#0f2433]">
       <TopNav email={user.email!} displayName={profile?.display_name ?? null} />
       <main>{children}</main>
     </div>

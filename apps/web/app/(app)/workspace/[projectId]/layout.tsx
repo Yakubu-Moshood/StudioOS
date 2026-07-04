@@ -18,15 +18,14 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
   }
 
   return (
-    // h-[calc(100vh-3.5rem)]: fills viewport below TopNav (h-14 = 3.5rem)
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-[#f6f3ea]">
       <WorkspaceHeader project={project} />
       {project.archived_at !== null && (
         <ArchivedProjectBanner projectId={project.id} />
       )}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <WorkspaceSidebar projectId={project.id} />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   )

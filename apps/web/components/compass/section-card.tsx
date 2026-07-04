@@ -93,7 +93,7 @@ export function SectionCard({ section, projectId, isFirst, isLast }: SectionCard
 
   if (isEditing) {
     return (
-      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-[#dce6e2] bg-white/90 p-5 shadow-sm">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`type-${section.id}`}>Type</Label>
           <select
@@ -128,6 +128,7 @@ export function SectionCard({ section, projectId, isFirst, isLast }: SectionCard
             onChange={(e) => setEditContent(e.target.value)}
             rows={4}
             disabled={isPending}
+            className="resize-none"
           />
         </div>
 
@@ -157,18 +158,16 @@ export function SectionCard({ section, projectId, isFirst, isLast }: SectionCard
   }
 
   return (
-    <div className="group flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+    <div className="group flex flex-col gap-3 rounded-[1.5rem] border border-[#e1e7e4] bg-white/85 p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="shrink-0 text-xs">
-              {SECTION_TYPE_LABELS[section.section_type]}
-            </Badge>
-          </div>
-          <h3 className="text-sm font-semibold leading-snug">{section.title}</h3>
+        <div className="flex min-w-0 flex-col gap-2">
+          <Badge variant="outline" className="w-fit shrink-0 border-[#cbded8] bg-[#f3faf7] text-xs text-[#2f7f73]">
+            {SECTION_TYPE_LABELS[section.section_type]}
+          </Badge>
+          <h3 className="text-base font-semibold leading-snug tracking-[-0.02em] text-[#0f2433]">{section.title}</h3>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
           <Button
             variant="ghost"
             size="icon"
@@ -213,7 +212,7 @@ export function SectionCard({ section, projectId, isFirst, isLast }: SectionCard
       </div>
 
       {section.content && (
-        <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+        <p className="whitespace-pre-wrap text-sm leading-7 text-[#667780]">
           {section.content}
         </p>
       )}
