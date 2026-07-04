@@ -1,4 +1,4 @@
-import { PackageCheck } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,7 @@ export default async function AssetsPage({ params }: AssetsPageProps) {
             </p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#b9d8c8] bg-[#f0f8f3] text-[#235c43]">
-            <PackageCheck className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
           </div>
         </div>
       </section>
