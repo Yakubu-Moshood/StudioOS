@@ -23,9 +23,9 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
       {project.archived_at !== null && (
         <ArchivedProjectBanner projectId={project.id} />
       )}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <WorkspaceSidebar projectId={project.id} />
-        <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   )
