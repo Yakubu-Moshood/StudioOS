@@ -17,34 +17,40 @@ const productionTypes: Array<{
   value: ProductionType
   label: string
   description: string
+  guidance: string
 }> = [
   {
     value: 'advertising_campaign',
     label: 'Advertising Campaign',
     description: 'Campaign strategy, concepts, scripts, visual development and delivery.',
+    guidance: 'Best first choice for the launch workflow because it already has the full guided production path.',
   },
   {
     value: 'documentary',
     label: 'Documentary',
     description: 'Research-led documentary or YouTube documentary production.',
+    guidance: 'Use this when the output is mainly a story, investigation, or documentary episode.',
   },
   {
     value: 'explainer_video',
     label: 'Explainer Video',
     description: 'Clear educational, product or service explanation.',
+    guidance: 'Use this for short, direct videos that explain a topic, offer, or process.',
   },
   {
     value: 'custom',
     label: 'Custom Production',
     description: 'Use the basic workflow for a production that does not fit the templates.',
+    guidance: 'Use this only when the other production types do not fit the work.',
   },
 ]
 
 export function CreateProductionForm({ projectId }: CreateProductionFormProps) {
   const [title, setTitle] = useState('')
-  const [productionType, setProductionType] = useState<ProductionType>('documentary')
+  const [productionType, setProductionType] = useState<ProductionType>('advertising_campaign')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const selectedType = productionTypes.find((type) => type.value === productionType)
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -63,14 +69,21 @@ export function CreateProductionForm({ projectId }: CreateProductionFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 rounded-lg border p-4">
+    <form onSubmit={handleSubmit} className="grid gap-4 rounded-[1.25rem] border border-[#dce6e2] bg-white/80 p-4 shadow-sm">
+      <div className="rounded-2xl border border-[#e1e7e4] bg-[#f8fbfa] p-4">
+        <p className="text-sm font-semibold text-[#0f2433]">Start simple</p>
+        <p className="mt-1 text-sm leading-6 text-[#667780]">
+          Give the production a clear title and choose the workflow type. For a first test, use Advertising Campaign.
+        </p>
+      </div>
+
       <div className="space-y-1.5">
         <Label htmlFor="production-title">Production title</Label>
         <Input
           id="production-title"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="e.g. EmpireOmitted Episode 6"
+          placeholder="e.g. EmpireOmitted Launch Campaign"
           disabled={isPending}
           maxLength={160}
         />
@@ -91,9 +104,10 @@ export function CreateProductionForm({ projectId }: CreateProductionFormProps) {
             </option>
           ))}
         </select>
-        <p className="text-sm text-muted-foreground">
-          {productionTypes.find((type) => type.value === productionType)?.description}
-        </p>
+        <div className="rounded-2xl border border-[#e1e7e4] bg-[#f8fbfa] p-3 text-sm leading-6 text-[#667780]">
+          <p>{selectedType?.description}</p>
+          <p className="mt-1 font-medium text-[#2f7f73]">{selectedType?.guidance}</p>
+        </div>
       </div>
 
       <div className="flex justify-end">
