@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import type { LucideIcon } from 'lucide-react'
 import { ArrowRight, CheckCircle2, Clock3, FolderKanban, PackageCheck, Plus, Sparkles, Workflow } from 'lucide-react'
 import { getProjects } from '@/app/actions/projects'
 import { ProjectGrid } from '@/components/dashboard/project-grid'
@@ -14,6 +15,18 @@ interface DashboardPageProps {
   searchParams: Promise<{ filter?: string }>
 }
 
+interface WorkflowCard {
+  label: string
+  status: string
+  Icon: LucideIcon
+}
+
+interface StatCard {
+  value: string | number
+  label: string
+  Icon: LucideIcon
+}
+
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { filter: rawFilter } = await searchParams
   const filter: ProjectFilterValue =
@@ -21,6 +34,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const projects = await getProjects(filter)
   const activeProjects = projects.filter((project) => project.archived_at === null).length
+
+  const workflowCards: WorkflowCard[] = [
+    { label: 'Brief', status: 'Completed', Icon: CheckCircle2 },
+    { label: 'Production', status: 'Active', Icon: Workflow },
+    { label: 'Delivery', status: 'Ready', Icon: PackageCheck },
+    { label: 'Package', status: 'Final gate', Icon: ArrowRight },
+  ]
+
+  const statCards: StatCard[] = [
+    { value: activeProjects, label: 'Active projects', Icon: FolderKanban },
+    { value: projects.length, label: 'Projects loaded', Icon: Workflow },
+    { value: '15', label: 'Workflow stages', Icon: CheckCircle2 },
+    { value: '3', label: 'Run recovery gates', Icon: Clock3 },
+  ]
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8">
@@ -54,18 +81,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-4">
-              {[
-                ['Brief', 'Completed', CheckCircle2],
-                ['Production', 'Active', Workflow],
-                ['Delivery', 'Ready', PackageCheck],
-                ['Package', 'Final gate', ArrowRight],
-              ].map(([label, status, Icon]) => (
-                <div key={label as string} className="rounded-2xl border border-[#e1e7e4] bg-white/85 p-4 shadow-sm">
+              {workflowCards.map(({ label, status, Icon }) => (
+                <div key={label} className="rounded-2xl border border-[#e1e7e4] bg-white/85 p-4 shadow-sm">
                   <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-[#e8f2ee] text-[#2f7f73]">
                     <Icon className="h-4 w-4" />
                   </div>
-                  <p className="text-sm font-semibold text-[#0f2433]">{label as string}</p>
-                  <p className="mt-1 text-xs text-[#667780]">{status as string}</p>
+                  <p className="text-sm font-semibold text-[#0f2433]">{label}</p>
+                  <p className="mt-1 text-xs text-[#667780]">{status}</p>
                 </div>
               ))}
             </div>
@@ -74,17 +96,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       </section>
 
       <section className="mt-6 grid gap-4 md:grid-cols-4">
-        {[
-          [activeProjects, 'Active projects', FolderKanban],
-          [projects.length, 'Projects loaded', Workflow],
-          ['15', 'Workflow stages', CheckCircle2],
-          ['3', 'Run recovery gates', Clock3],
-        ].map(([value, label, Icon]) => (
-          <div key={label as string} className="rounded-3xl border border-[#e1e7e4] bg-white/80 p-5 shadow-sm">
+        {statCards.map(({ value, label, Icon }) => (
+          <div key={label} className="rounded-3xl border border-[#e1e7e4] bg-white/80 p-5 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-2xl font-semibold tracking-[-0.04em] text-[#0f2433]">{value}</p>
-                <p className="mt-1 text-sm text-[#667780]">{label as string}</p>
+                <p className="mt-1 text-sm text-[#667780]">{label}</p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e8f2ee] text-[#2f7f73]">
                 <Icon className="h-5 w-5" />
