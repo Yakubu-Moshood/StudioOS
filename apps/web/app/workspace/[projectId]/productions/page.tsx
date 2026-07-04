@@ -45,7 +45,7 @@ export default async function ProductionsPage({ params }: ProductionsPageProps) 
             </Badge>
             <h1 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[#0f2433] sm:text-3xl">Productions</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[#667780]">
-              Create, continue, and review production workflows from one place.
+              Create the executable workflow for this project. Start here when you are ready to move from planning into production.
             </p>
           </div>
           <div className="grid w-full grid-cols-3 gap-2 text-center sm:gap-3 xl:max-w-md">
@@ -65,6 +65,15 @@ export default async function ProductionsPage({ params }: ProductionsPageProps) 
         </div>
       </section>
 
+      {productions.length === 0 && (
+        <section className="w-full rounded-[1.5rem] border border-[#dce6e2] bg-[#f8fbfa] p-5 shadow-sm">
+          <p className="text-sm font-semibold text-[#0f2433]">Recommended first move</p>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-[#667780]">
+            Create one Production for the project. For launch, the clearest path is an Advertising Campaign production because it already has the full guided workflow.
+          </p>
+        </section>
+      )}
+
       <section className="w-full rounded-[1.5rem] border border-[#e1e7e4] bg-white/85 p-4 shadow-sm sm:p-5">
         <div className="mb-4 flex min-w-0 items-center gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#e8f2ee] text-[#2f7f73]">
@@ -72,7 +81,7 @@ export default async function ProductionsPage({ params }: ProductionsPageProps) 
           </div>
           <div className="min-w-0">
             <h2 className="font-semibold tracking-[-0.02em] text-[#0f2433]">New production</h2>
-            <p className="text-sm text-[#667780]">Start a new workflow inside this project.</p>
+            <p className="text-sm text-[#667780]">Start the workflow that will produce the final output.</p>
           </div>
         </div>
         <CreateProductionForm projectId={projectId} />
@@ -89,8 +98,11 @@ export default async function ProductionsPage({ params }: ProductionsPageProps) 
 
         <div className="grid gap-3">
           {productions.length === 0 ? (
-            <div className="rounded-2xl border border-dashed bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-              No productions yet. Create the first production above.
+            <div className="rounded-2xl border border-dashed border-[#cbded8] bg-white/70 p-8 text-center">
+              <p className="text-sm font-medium text-[#0f2433]">No productions yet.</p>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#667780]">
+                Use the form above to create the first production workflow for this project.
+              </p>
             </div>
           ) : (
             productions.map((production) => (
