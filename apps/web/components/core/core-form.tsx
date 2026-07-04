@@ -97,7 +97,12 @@ export function CoreForm({ projectId, initialCore }: CoreFormProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-lg border p-6">
+      <div className="rounded-[1.5rem] border border-[#e1e7e4] bg-white/85 p-5 shadow-sm sm:p-6">
+        <div className="mb-5">
+          <h2 className="font-semibold tracking-[-0.02em] text-[#0f2433]">Project details</h2>
+          <p className="mt-1 text-sm text-[#667780]">Keep the foundation clear before production begins.</p>
+        </div>
+
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="synopsis">Synopsis</Label>
@@ -108,10 +113,11 @@ export function CoreForm({ projectId, initialCore }: CoreFormProps) {
               placeholder="A brief summary of your project…"
               rows={4}
               disabled={isAnyPending}
+              className="resize-none"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="genre">Genre</Label>
               <Select
@@ -160,23 +166,23 @@ export function CoreForm({ projectId, initialCore }: CoreFormProps) {
               placeholder="e.g. redemption, identity, loss"
               disabled={isAnyPending}
             />
-            <p className="text-xs text-muted-foreground">Separate themes with commas.</p>
+            <p className="text-xs text-[#667780]">Separate themes with commas.</p>
           </div>
 
           <div className="flex justify-end">
             <Button type="button" onClick={handleSave} disabled={isAnyPending}>
-              {isSavePending ? 'Saving…' : 'Save'}
+              {isSavePending ? 'Saving…' : 'Save core'}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="rounded-lg border p-6">
+      <div className="rounded-[1.5rem] border border-[#e1e7e4] bg-white/85 p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4">
           <div>
-            <h3 className="text-sm font-semibold">Generate with AI</h3>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Get AI suggestions based on your core data.
+            <h2 className="font-semibold tracking-[-0.02em] text-[#0f2433]">Generate with AI</h2>
+            <p className="mt-1 text-sm text-[#667780]">
+              Get suggestions based on your core data.
             </p>
           </div>
 
@@ -189,6 +195,7 @@ export function CoreForm({ projectId, initialCore }: CoreFormProps) {
               placeholder="Optional — e.g. Suggest improvements to the synopsis and themes."
               rows={3}
               disabled={isAnyPending}
+              className="resize-none"
             />
           </div>
 
