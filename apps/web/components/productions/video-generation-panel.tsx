@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { ProductionArtifactUpload } from '@/components/productions/production-artifact-upload'
 import { toast } from 'sonner'
 
 export function VideoGenerationPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: VideoGenerationVersion[]; activeRunId?: string | null }) {
@@ -70,6 +71,7 @@ export function VideoGenerationPanel(props: { projectId: string; productionId: s
             <div className="text-sm text-muted-foreground">Active run recovered: {runId}</div>
             <Input value={provider} onChange={(event) => setProvider(event.target.value)} placeholder="Provider, for example Runway" disabled={pending} />
             <Input value={model} onChange={(event) => setModel(event.target.value)} placeholder="Model or workflow name" disabled={pending} />
+            <ProductionArtifactUpload productionId={props.productionId} artifactKind="generated-video" disabled={pending} onUploaded={setUrl} />
             <Input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="Generated video URL" disabled={pending} />
             <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional generation notes" disabled={pending} />
             <div className="flex justify-end"><Button onClick={registerOutput} disabled={pending}>{pending ? 'Saving…' : 'Register generated video'}</Button></div>
