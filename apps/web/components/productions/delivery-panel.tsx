@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { ProductionArtifactUpload } from '@/components/productions/production-artifact-upload'
 import { toast } from 'sonner'
 
 export function DeliveryPanel(props: { projectId: string; productionId: string; canStart: boolean; versions: DeliveryVersion[]; activeRunId?: string | null }) {
@@ -102,6 +103,7 @@ export function DeliveryPanel(props: { projectId: string; productionId: string; 
             </div>
             <Input value={method} onChange={(event) => setMethod(event.target.value)} placeholder="Delivery method" disabled={pending} />
             <Input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Recipient or client name" disabled={pending} />
+            <ProductionArtifactUpload productionId={props.productionId} artifactKind="delivery-package" disabled={pending} onUploaded={setUrl} />
             <Input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="Delivery package URL" disabled={pending} />
             <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional delivery notes" disabled={pending} />
             <div className="flex justify-end"><Button onClick={registerPackage} disabled={pending}>{pending ? 'Saving…' : 'Register Delivery Package'}</Button></div>
